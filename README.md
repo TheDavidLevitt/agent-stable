@@ -20,6 +20,27 @@ Every multi-agent app quietly accumulates the same questions:
 
 agent-stable answers these continuously instead of the night you get the invoice.
 
+## The stable
+
+Downstream agents don't ask for model names — they ask for a **tier**, and the stable answers
+with the current model, its real cost, and anything time- or token-sensitive:
+
+- **workhorse** — the cheapest adequate model: mechanical extraction, classification, bulk work.
+- **steeldust** — your daily driver; the orchestration layer, escalation from workhorse:
+  thesis-led summaries, judgment calls, routing decisions.
+- **thoroughbred** — a top-tier reasoning model; hard analysis, escalation from steeldust.
+
+```js
+const tiers = createTiers({ incumbent: t => store.incumbent(t), priceOf: pricing.priceOf,
+  costClass: m => pricing.costClass(m), advisories: (m, t) => myCreditWarnings(m) });
+tiers.escalate('workhorse')
+// → { tier: 'steeldust', model: 'claude-sonnet-5', price: { in: 3, out: 15 },
+//     fundingClass: 'credit', advisories: ['$2/$10 intro pricing through 2026-08-31'] }
+```
+
+So a bot can run cheap by default, request escalation when it's out of its depth, and be told
+exactly what it will spend — and whose money that is — before it commits.
+
 ## How the modules run
 
 ```mermaid
@@ -79,8 +100,8 @@ compiles the market (cost × benchmarks × your thresholds) so the whole loop is
    `credit` (finite pools — cloud credits, promo allowances), or `included` (flat-rate
    subscription). A dollar of expiring credit is not a dollar of cash; the procurement agent
    treats expiring credits as near-free when weighing arbitrage.
-2. **Use cases own thresholds.** You define roles ("daily driver", "top reasoning", "cheapest
-   adequate", "X access"…), each with a benchmark that predicts quality for it and a minimum
+2. **Use cases own thresholds.** Each tier (workhorse, steeldust, thoroughbred — plus any
+   custom roles like "X access") owns a benchmark that predicts quality for it and a minimum
    score. The engine's hypothesis fills the gap until you set one; your manual edits are
    provenance-tracked and never silently overridden.
 3. **Reversible autonomy.** Auto-adopt fires only when a candidate is *runnable* (a model that
@@ -133,6 +154,8 @@ apa.js       ✅ evaluate · projectSavings · adoptGate · considerFinding — 
                 {info, propose} · log): swap a Sheet+journal for a JSON-file+Slack and it
                 behaves identically. Scan-prompt ASSEMBLY stays host-side by design — it is
                 context-gathering (credit pools, source scoreboard) from host systems.
+tiers.js     ✅ tier-addressed resolution: resolve('workhorse') / escalate() → model + real
+                cost + funding class + time-sensitive advisories, for downstream agents
 board.js     ◐  compile/parse for market board + benchmark knowledge base (persistence host-side)
 server.js    ⬜ standalone HTTP surface + starter dashboard (second package)
 ```

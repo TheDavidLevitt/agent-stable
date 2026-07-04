@@ -1,6 +1,6 @@
 // agent-stable tests — plain-Node asserts, no framework, no network.  node test.js
 const assert = require('assert');
-const { createMeter, createAdapters, createApa, createBoard, pricing, sinks } = require('./index');
+const { createMeter, createAdapters, createApa, createBoard, createTiers, pricing, sinks } = require('./index');
 
 (async () => {
   // pricing
@@ -69,10 +69,23 @@ const { createMeter, createAdapters, createApa, createBoard, pricing, sinks } = 
   assert(await apa2.considerFinding({ kind: 'release', lab: 'LabX', model: 'cand2', headline: 'h', url: 'u' }, { ...ctx, crossProvider: false }) === 'test-recommend', 'crossProvider off');
 
   // board: prompt build, parse, threshold precedence, fuzzy bench names
-  const bd = createBoard({ roles: { roles: { daily: { primary: 'AA Intelligence', min: 40 } }, all_benchmarks: ['AA Intelligence'], track_non_us_os: 2 }, prices: {}, labs: { us_labs: ['L'], hosting: ['H'] } });
-  const parsed = bd.parseCompile('{"models":[{"model":"m","lab":"L","role":"daily","benchmarks":{}}],"cutoffs":{"daily":{"min":33}}}');
-  assert(parsed.models.length === 1 && bd.thresholdFor('daily', parsed.cutoffs) === 40, 'user threshold wins');
+  const bd = createBoard({ roles: { roles: { steeldust: { primary: 'AA Intelligence', min: 40 } }, all_benchmarks: ['AA Intelligence'], track_non_us_os: 2 }, prices: {}, labs: { us_labs: ['L'], hosting: ['H'] } });
+  const parsed = bd.parseCompile('{"models":[{"model":"m","lab":"L","role":"steeldust","benchmarks":{}}],"cutoffs":{"steeldust":{"min":33}}}');
+  assert(parsed.models.length === 1 && bd.thresholdFor('steeldust', parsed.cutoffs) === 40, 'user threshold wins');
   assert(bd.sameBench('AA Intelligence (Artificial Analysis)', 'AA Intelligence'), 'fuzzy bench');
+
+  // tiers: resolve/escalate with price, funding class, and time-sensitive advisories
+  const tiers = createTiers({
+    incumbent: t => ({ workhorse: 'claude-haiku-4-5', steeldust: 'claude-sonnet-5', thoroughbred: 'claude-opus-4-8' })[t],
+    priceOf: pricing.priceOf, costClass: m => pricing.costClass(m),
+    advisories: (m, t) => t === 'workhorse' ? ['gcp credit pool expires 2026-07-16'] : [],
+  });
+  const wh = tiers.resolve('workhorse');
+  assert(wh.model === 'claude-haiku-4-5' && wh.price.out === 5 && wh.advisories[0].includes('credit pool'), 'tier resolve');
+  const esc = tiers.escalate('workhorse');
+  assert(esc.tier === 'steeldust' && esc.model === 'claude-sonnet-5' && esc.advisories.some(a => a.includes('intro pricing')), 'escalation returns model + real cost + advisories');
+  assert(tiers.escalate('thoroughbred').advisories.some(a => a.includes('top tier')), 'top-tier escalation capped');
+  assert(tiers.resolve('pony').error, 'unknown tier rejected');
 
   console.log('all agent-stable tests passed');
 })().catch(e => { console.error('TEST FAILED:', e.message); process.exit(1); });

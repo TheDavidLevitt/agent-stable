@@ -7,7 +7,7 @@
 const MODEL_PRICES = {
   'claude-opus-4-8':    { in: 5,  out: 25,  tier: 'opus' },
   'claude-opus-4-6':    { in: 5,  out: 25,  tier: 'opus' },
-  'claude-sonnet-5':    { in: 3,  out: 15,  tier: 'sonnet' }, // $2/$10 intro through 2026-08-31
+  'claude-sonnet-5':    { in: 3,  out: 15,  tier: 'sonnet', note: '$2/$10 intro pricing through 2026-08-31' },
   'claude-haiku-4-5':   { in: 1,  out: 5,   tier: 'haiku' },
   'gemini-2.5-flash':   { in: 0.30, out: 2.50, tier: 'gemini' },
   'gemini-2.5-pro':     { in: 1.25, out: 10, tier: 'gemini' },

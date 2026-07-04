@@ -17,13 +17,13 @@ function createBoard({ roles = { roles: {}, all_benchmarks: [], track_non_us_os:
 
   function compilePrompt({ currentDefault = '' } = {}) {
     return `You are a model-board compiler building a live cost+benchmark comparison for a multi-model agent system.\n` +
-      `Track, for EACH of these labs (${(labs.us_labs || []).join(', ')}): their current TOP-REASONING model (role "reasoning"), their DAILY-DRIVER general model (role "daily"), and their CHEAPEST usable model (role "cheap"). ALSO include the top ${roles.track_non_us_os || 3} non-US OPEN-WEIGHT models (role "watch", os=true) for comparison.\n` +
+      `Track, for EACH of these labs (${(labs.us_labs || []).join(', ')}): their current TOP-TIER REASONING model (role "thoroughbred"), their DAILY-DRIVER general model (role "steeldust"), and their CHEAPEST usable model (role "workhorse"). ALSO include the top ${roles.track_non_us_os || 3} non-US OPEN-WEIGHT models (role "watch", os=true) for comparison.\n` +
       `For each model provide: model (exact API id if known), lab, country, os (true/false), role, priceIn, priceOut ($/1M tokens), and a benchmarks object using these keys where a real value exists: ${benchAll().join(', ')} (numbers only; OMIT any score you can't verify).\n` +
       `PRICING BASIS: for closed models use the lab's own API list price. For OPEN-WEIGHT models use the CHEAPEST major hosting provider's serverless price (${(labs.hosting || []).join(', ')}) and set "host" to that provider's name — never the lab's own premium endpoint.\n` +
       `Current price table for reference ($/1M in/out): ${JSON.stringify(prices)}. Current system default: ${currentDefault}.\n` +
       `Use web search — Artificial Analysis, LMArena, and the lab pages. Real current figures only; never fabricate.\n` +
-      `ALSO hypothesize, for each role, the MINIMUM score on its primary benchmark that a model needs to be ADEQUATE for that task (reasoning = hard analysis; daily = thesis-led summaries with contextualized numbers; cheap = mechanical extraction). Give a one-line rationale each.\n` +
-      `Return STRICT JSON only: {"models":[{"model","lab","country","os","role","priceIn","priceOut","benchmarks":{...},"host","source"}], "cutoffs":{"reasoning":{"min":<number>,"why":"..."},"daily":{...},"cheap":{...}}}. Aim for ~18-22 model rows.`;
+      `ALSO hypothesize, for each role, the MINIMUM score on its primary benchmark that a model needs to be ADEQUATE for that task (thoroughbred = hard analysis; steeldust = thesis-led summaries with contextualized numbers; workhorse = mechanical extraction). Give a one-line rationale each.\n` +
+      `Return STRICT JSON only: {"models":[{"model","lab","country","os","role","priceIn","priceOut","benchmarks":{...},"host","source"}], "cutoffs":{"thoroughbred":{"min":<number>,"why":"..."},"steeldust":{...},"workhorse":{...}}}. Aim for ~18-22 model rows.`;
   }
 
   function parseCompile(raw) {
@@ -41,7 +41,7 @@ function createBoard({ roles = { roles: {}, all_benchmarks: [], track_non_us_os:
   function benchPrompt() {
     return `You maintain a benchmark knowledge base for a multi-model agent system. For EACH benchmark below, produce current, accurate entries (use web search to verify leaders/scores — real figures only, never fabricate):\n` +
       `BENCHMARKS: ${benchAll().join(', ')}\n` +
-      `Fields per benchmark: measures (one dense line: what skill it actually tests and its failure modes), goodFor (which agent use cases it PREDICTS well: reasoning / daily driver / cheap-mechanical / coding / agentic — and which it misleads on), cutoffs (suggested minimum scores for common tasks with the score scale), leader (current top model + score), notes (saturation status, gaming concerns, update cadence).\n` +
+      `Fields per benchmark: measures (one dense line: what skill it actually tests and its failure modes), goodFor (which agent use cases it PREDICTS well: thoroughbred-reasoning / steeldust-daily / workhorse-mechanical / coding / agentic — and which it misleads on), cutoffs (suggested minimum scores for common tasks with the score scale), leader (current top model + score), notes (saturation status, gaming concerns, update cadence).\n` +
       `Return STRICT JSON only: {"benchmarks":[{"name","measures","goodFor","cutoffs","leader","notes"}]}`;
   }
 
