@@ -1,0 +1,50 @@
+<svg width="1200" height="520" viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated terminal replay of node demo.js: meter, evaluate, gate, projected saving">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 17px; }
+    .ln { opacity: 0; animation: reveal .35s ease-out forwards; }
+    @keyframes reveal { to { opacity: 1; } }
+    .cur { opacity: 0; animation: on .1s linear 7.2s forwards, blink 1.1s steps(1) 7.3s infinite; }
+    @keyframes on { to { opacity: 1; } }
+    @keyframes blink { 50% { opacity: 0; } }
+    .d0  { animation-delay: .4s }  .d1  { animation-delay: 1.1s }
+    .d2  { animation-delay: 1.7s } .d3  { animation-delay: 2.4s }
+    .d4  { animation-delay: 3.0s } .d5  { animation-delay: 3.2s }
+    .d6  { animation-delay: 3.9s } .d7  { animation-delay: 4.5s }
+    .d8  { animation-delay: 5.0s } .d9  { animation-delay: 5.7s }
+    .d10 { animation-delay: 6.6s } .d11 { animation-delay: 7.0s }
+    .t { fill: #dbe4ee } .m { fill: #8fa1b3 } .b { fill: #7fb0ff }
+    .g { fill: #6fcf97 } .y { fill: #e8c07a } .r { fill: #f1948a } .p { fill: #6fcf97 }
+  </style>
+
+  <!-- terminal chrome -->
+  <rect x="1" y="1" width="1198" height="518" rx="14" fill="#0d1117" stroke="#2c3646" stroke-width="2"/>
+  <rect x="1" y="1" width="1198" height="44" rx="14" fill="#161d27"/>
+  <rect x="1" y="31" width="1198" height="15" fill="#161d27"/>
+  <circle cx="28" cy="23" r="7" fill="#ff5f56"/>
+  <circle cx="52" cy="23" r="7" fill="#ffbd2e"/>
+  <circle cx="76" cy="23" r="7" fill="#27c93f"/>
+  <text x="600" y="29" text-anchor="middle" class="m" font-size="14px">agent-stable — node demo.js (no network)</text>
+
+  <!-- replay -->
+  <g>
+    <text x="40" y="86" class="ln d0"><tspan class="p">$</tspan><tspan class="t"> node demo.js</tspan></text>
+
+    <text x="40" y="124" class="ln d1"><tspan class="b">1) meter a few calls…</tspan></text>
+    <text x="40" y="152" class="ln d2"><tspan class="t">   3 events metered — </tspan><tspan class="y">$0.001260</tspan><tspan class="t"> (funding class: </tspan><tspan class="r">real</tspan><tspan class="t">)</tspan></text>
+
+    <text x="40" y="190" class="ln d3"><tspan class="b">2) a challenger appears — head-to-head eval, judged…</tspan></text>
+    <text x="40" y="218" class="ln d4"><tspan class="t">   verdict: {"qualityOK":</tspan><tspan class="g">true</tspan><tspan class="t">,"cheaper":</tspan><tspan class="g">true</tspan><tspan class="t">,"note":"A leads with the thesis and</tspan></text>
+    <text x="40" y="246" class="ln d5"><tspan class="t">   contextualizes every figure","cp":{"in":</tspan><tspan class="y">0.5</tspan><tspan class="t">,"out":</tspan><tspan class="y">2</tspan><tspan class="t">},"ip":{"in":</tspan><tspan class="y">3</tspan><tspan class="t">,"out":</tspan><tspan class="y">15</tspan><tspan class="t">}}</tspan></text>
+
+    <text x="40" y="284" class="ln d6"><tspan class="b">3) the adopt gate…</tspan></text>
+    <text x="40" y="312" class="ln d7"><tspan class="t">   autoAdopt on : {"adopt":</tspan><tspan class="g">true</tspan><tspan class="t">,"reason":"equal-or-better and cheaper"}</tspan></text>
+    <text x="40" y="340" class="ln d8"><tspan class="t">   autoAdopt off: {"adopt":</tspan><tspan class="r">false</tspan><tspan class="t">,"reason":"better+cheaper (auto-adopt off)"}</tspan></text>
+
+    <text x="40" y="378" class="ln d9"><tspan class="b">4) projected saving</tspan><tspan class="t"> at ~40M in / 8M out per month: </tspan><tspan class="y">$204/mo</tspan></text>
+
+    <text x="40" y="430" class="ln d10"><tspan class="m">That is the loop: </tspan><tspan class="t">meter → evaluate → gate → (host commits, reversibly).</tspan></text>
+
+    <text x="40" y="472" class="ln d11"><tspan class="p">$</tspan></text>
+    <rect x="62" y="458" width="10" height="19" fill="#dbe4ee" class="cur"/>
+  </g>
+</svg>

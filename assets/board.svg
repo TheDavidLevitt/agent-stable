@@ -1,0 +1,116 @@
+<svg width="1200" height="620" viewBox="0 0 1200 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mockup of a host dashboard's procurement board: market table, adoption proposal, funding panel (sample data)">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 16px; }
+    .t { fill: #dbe4ee } .m { fill: #8fa1b3 } .dim { fill: #5c6f82 }
+    .b { fill: #7fb0ff } .g { fill: #6fcf97 } .y { fill: #e9b949 } .r { fill: #f1948a }
+    .h { font-size: 13px; fill: #5c6f82; letter-spacing: .08em }
+    .n { text-anchor: end }
+    .chip { font-size: 12.5px }
+  </style>
+
+  <!-- canvas -->
+  <rect x="1" y="1" width="1198" height="618" rx="14" fill="#0b0f14" stroke="#2c3646" stroke-width="2"/>
+  <text x="28" y="42" class="t" font-size="19px">The stable — market board</text>
+  <rect x="1064" y="22" width="108" height="28" rx="14" fill="none" stroke="#3a4658"/>
+  <text x="1118" y="41" text-anchor="middle" class="m" font-size="13px">sample data</text>
+
+  <!-- ══ market table panel ══ -->
+  <rect x="24" y="70" width="744" height="510" rx="10" fill="#131a22" stroke="#263140"/>
+  <text x="44" y="103" class="m" font-size="14px">Stable — highest → lowest cost per output token</text>
+
+  <!-- header row -->
+  <text x="44"  y="140" class="h">MODEL</text>
+  <text x="262" y="140" class="h">TIER</text>
+  <text x="492" y="140" class="h n">$/1M IN</text>
+  <text x="582" y="140" class="h n">$/1M OUT</text>
+  <text x="648" y="140" class="h n">BENCH</text>
+  <text x="668" y="140" class="h">FUNDING</text>
+  <line x1="40" y1="152" x2="752" y2="152" stroke="#263140"/>
+
+  <!-- row 1: thoroughbred -->
+  <text x="44" y="190" class="t">claude-opus-4-8</text>
+  <circle cx="270" cy="185" r="5" fill="#d4a24e"/>
+  <text x="284" y="190" class="t">thoroughbred</text>
+  <text x="492" y="190" class="t n">15.00</text>
+  <text x="582" y="190" class="t n">75.00</text>
+  <text x="648" y="190" class="b n">84</text>
+  <rect x="668" y="171" width="84" height="26" rx="13" fill="#1d2430"/>
+  <text x="710" y="189" text-anchor="middle" class="chip m">included</text>
+  <line x1="40" y1="216" x2="752" y2="216" stroke="#1a222c"/>
+
+  <!-- row 2: steeldust -->
+  <text x="44" y="254" class="t">claude-sonnet-5</text>
+  <circle cx="270" cy="249" r="5" fill="#7da7c9"/>
+  <text x="284" y="254" class="t">steeldust</text>
+  <text x="492" y="254" class="t n">3.00</text>
+  <text x="582" y="254" class="t n">15.00</text>
+  <text x="648" y="254" class="b n">78</text>
+  <rect x="668" y="235" width="84" height="26" rx="13" fill="#1d2430"/>
+  <text x="710" y="253" text-anchor="middle" class="chip m">included</text>
+  <line x1="40" y1="280" x2="752" y2="280" stroke="#1a222c"/>
+
+  <!-- row 3: incumbent workhorse -->
+  <text x="44" y="318" class="t">gpt-5.1 <tspan class="dim">(incumbent)</tspan></text>
+  <circle cx="270" cy="313" r="5" fill="#b0785a"/>
+  <text x="284" y="318" class="t">workhorse</text>
+  <text x="492" y="318" class="t n">1.25</text>
+  <text x="582" y="318" class="t n">10.00</text>
+  <text x="648" y="318" class="b n">76</text>
+  <rect x="668" y="299" width="84" height="26" rx="13" fill="#3a1d1d"/>
+  <text x="710" y="317" text-anchor="middle" class="chip r">real</text>
+  <line x1="40" y1="344" x2="752" y2="344" stroke="#1a222c"/>
+
+  <!-- row 4: candidate (highlighted) -->
+  <rect x="34" y="352" width="724" height="52" rx="8" fill="#16271c"/>
+  <text x="44" y="384" class="t">gemini-3-flash <tspan class="g">← candidate</tspan></text>
+  <text x="284" y="384" class="dim">—</text>
+  <text x="492" y="384" class="t n">0.50</text>
+  <text x="582" y="384" class="t n">2.00</text>
+  <text x="648" y="384" class="b n">71</text>
+  <rect x="668" y="365" width="84" height="26" rx="13" fill="#16271c" stroke="#2b4a37"/>
+  <text x="710" y="383" text-anchor="middle" class="chip g">credit</text>
+  <line x1="40" y1="412" x2="752" y2="412" stroke="#1a222c"/>
+
+  <!-- row 5: self-host reference -->
+  <text x="44" y="450" class="t">qwen3-32b <tspan class="dim">(self-host)</tspan></text>
+  <text x="284" y="450" class="dim">—</text>
+  <text x="492" y="450" class="m n">~0.04</text>
+  <text x="582" y="450" class="m n">est.</text>
+  <text x="648" y="450" class="b n">63</text>
+  <rect x="668" y="431" width="84" height="26" rx="13" fill="#1d2430"/>
+  <text x="710" y="449" text-anchor="middle" class="chip m">watts</text>
+  <line x1="40" y1="476" x2="752" y2="476" stroke="#1a222c"/>
+
+  <text x="44" y="516" class="dim" font-size="13px">bench = per-tier benchmark (use cases own thresholds) · self-host line is an</text>
+  <text x="44" y="536" class="dim" font-size="13px">electricity-only estimate from an editable watts × tok/s × $/kWh formula</text>
+
+  <!-- ══ APA proposal card ══ -->
+  <rect x="784" y="70" width="392" height="256" rx="10" fill="#131a22" stroke="#263140"/>
+  <text x="804" y="103" class="m" font-size="14px">APA — adoption proposal</text>
+  <text x="804" y="140" class="t">gemini-3-flash <tspan class="m">→</tspan> <tspan fill="#b0785a">●</tspan> workhorse</text>
+  <text x="804" y="176" class="g">✓ <tspan class="t">runnable</tspan> <tspan class="dim">(probed)</tspan></text>
+  <text x="804" y="204" class="g">✓ <tspan class="t">equal-or-better</tspan> <tspan class="dim">(judged head-to-head)</tspan></text>
+  <text x="804" y="232" class="g">✓ <tspan class="t">cheaper</tspan> <tspan class="dim">— projected saving</tspan> <tspan class="y">$204/mo</tspan></text>
+  <rect x="804" y="254" width="92" height="34" rx="8" fill="#1e3a2a" stroke="#2b4a37"/>
+  <text x="850" y="276" text-anchor="middle" class="g">adopt</text>
+  <rect x="908" y="254" width="92" height="34" rx="8" fill="none" stroke="#3a4658"/>
+  <text x="954" y="276" text-anchor="middle" class="m">dismiss</text>
+  <text x="804" y="314" class="dim" font-size="12.5px">one-click revert · rationale logged</text>
+
+  <!-- ══ funding panel ══ -->
+  <rect x="784" y="346" width="392" height="234" rx="10" fill="#131a22" stroke="#263140"/>
+  <text x="804" y="379" class="m" font-size="14px">Funding — whose money is it?</text>
+
+  <text x="804" y="416" class="t">GCP credits <tspan class="g">$218.40 left</tspan></text>
+  <rect x="804" y="428" width="352" height="8" rx="4" fill="#1a222c"/>
+  <rect x="804" y="428" width="211" height="8" rx="4" fill="#6fcf97"/>
+  <text x="804" y="456" class="dim" font-size="12.5px">expires 2026-09-30 · near-free</text>
+
+  <text x="804" y="492" class="t">This month <tspan class="m">$44.15 total</tspan></text>
+  <rect x="804" y="504" width="352" height="10" rx="5" fill="#1a222c"/>
+  <rect x="804" y="504" width="99"  height="10" rx="5" fill="#f1948a"/>
+  <rect x="903" y="504" width="217" height="10" fill="#6fcf97"/>
+  <rect x="1120" y="504" width="36" height="10" rx="5" fill="#9fb0c2"/>
+  <text x="804" y="536" class="r" font-size="12.5px">$12.40 charged <tspan class="dim">·</tspan> <tspan class="g">$31.75 credit</tspan></text>
+  <text x="804" y="562" class="m" font-size="12.5px">rest included <tspan class="dim">· credit &#8800; cash</tspan></text>
+</svg>

@@ -104,6 +104,14 @@ funding-classifies every call into a **sink**, the **APA engine** uses the same 
 head-to-head-test new models against your incumbent and gates adoption, and the **board**
 compiles the market (cost × benchmarks × your thresholds) so the whole loop is inspectable.
 
+## What a host builds on it
+
+<img src="assets/board.svg" alt="Mockup of a host dashboard's procurement board: market table with per-tier benchmarks and funding chips, APA adoption proposal with one-click revert, and a funding panel splitting charged vs credit vs included" width="100%">
+
+*The procurement board a host renders from `board.js` output + meter events (mockup, sample
+data): the market table with per-tier benchmarks and source-of-funds chips, the APA's gated
+adoption proposal, and the funding panel that never confuses expiring credit with cash.*
+
 ## The ideas that matter
 
 1. **Source-of-funds, not just cost.** Every event is classified `real` (out-of-pocket),
@@ -149,7 +157,9 @@ const verdict = await apa.evaluate({ id: 'candidate', provider: 'ollama' }, { id
 console.log(apa.adoptGate(verdict, { autoAdopt: true }));
 ```
 
-Run the no-network demo: `node demo.js`
+Run the no-network demo — `node demo.js` replays the whole loop:
+
+<img src="assets/demo.svg" alt="Animated terminal replay of node demo.js: meter three calls, judge a challenger head-to-head, gate adoption, project $204/mo saving" width="100%">
 
 ## Module status
 
