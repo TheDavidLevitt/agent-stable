@@ -1,0 +1,62 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="agent-stable: cost-performance management for a stable of AI models">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10151d"/>
+      <stop offset="1" stop-color="#1a2230"/>
+    </linearGradient>
+    <linearGradient id="shoe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c07a"/>
+      <stop offset="1" stop-color="#b8863d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- card -->
+  <rect x="1" y="1" width="1198" height="298" rx="16" fill="url(#bg)" stroke="#2c3646" stroke-width="2"/>
+
+  <!-- faint descending cost curve, background right -->
+  <path d="M 620 90 C 760 100, 820 150, 900 180 S 1080 225, 1160 235"
+        fill="none" stroke="#7da7c9" stroke-width="2" stroke-dasharray="1 9"
+        stroke-linecap="round" opacity="0.35"/>
+  <circle cx="1160" cy="235" r="5" fill="#7da7c9" opacity="0.5"/>
+  <text x="1052" y="262" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="13" fill="#7da7c9" opacity="0.55">$ / month</text>
+
+  <!-- horseshoe emblem -->
+  <g>
+    <path d="M 199.8 110.2 A 65 65 0 1 1 100.2 110.2"
+          fill="none" stroke="url(#shoe)" stroke-width="24" stroke-linecap="round"/>
+    <!-- nail holes -->
+    <circle cx="199.8" cy="110.2" r="4.5" fill="#141a24"/>
+    <circle cx="215"   cy="152"   r="4.5" fill="#141a24"/>
+    <circle cx="196"   cy="198"   r="4.5" fill="#141a24"/>
+    <circle cx="150"   cy="217"   r="4.5" fill="#141a24"/>
+    <circle cx="104"   cy="198"   r="4.5" fill="#141a24"/>
+    <circle cx="85"    cy="152"   r="4.5" fill="#141a24"/>
+    <circle cx="100.2" cy="110.2" r="4.5" fill="#141a24"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="290" y="128" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="58" font-weight="700" fill="#e6edf3">agent<tspan fill="#d4a24e">-</tspan>stable</text>
+  <text x="292" y="170" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="19" fill="#9aa7b8">cost-performance management for a stable of AI models</text>
+
+  <!-- tier chips -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">
+    <rect x="292" y="200" width="152" height="36" rx="18" fill="none" stroke="#3a4658" stroke-width="1.5"/>
+    <circle cx="314" cy="218" r="6" fill="#b0785a"/>
+    <text x="328" y="224" fill="#c9d4e0">workhorse</text>
+
+    <rect x="456" y="200" width="152" height="36" rx="18" fill="none" stroke="#3a4658" stroke-width="1.5"/>
+    <circle cx="478" cy="218" r="6" fill="#7da7c9"/>
+    <text x="492" y="224" fill="#c9d4e0">steeldust</text>
+
+    <rect x="620" y="200" width="184" height="36" rx="18" fill="none" stroke="#3a4658" stroke-width="1.5"/>
+    <circle cx="642" cy="218" r="6" fill="#d4a24e"/>
+    <text x="656" y="224" fill="#c9d4e0">thoroughbred</text>
+
+    <!-- escalation arrows between chips -->
+    <text x="446" y="224" fill="#5a6878" font-size="15">&#8594;</text>
+    <text x="610" y="224" fill="#5a6878" font-size="15">&#8594;</text>
+  </g>
+</svg>

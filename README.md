@@ -1,4 +1,14 @@
-# agent-stable
+<div align="center">
+
+<img src="assets/hero.svg" alt="agent-stable — cost-performance management for a stable of AI models" width="100%">
+
+[![CI](https://github.com/TheDavidLevitt/agent-stable/actions/workflows/test.yml/badge.svg)](https://github.com/TheDavidLevitt/agent-stable/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/agent-stable?color=cb3837&logo=npm)](https://www.npmjs.com/package/agent-stable)
+[![node](https://img.shields.io/node/v/agent-stable?color=339933&logo=node.js&logoColor=white)](package.json)
+[![dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)](package.json)
+[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+</div>
 
 **Cost-performance management for a stable of AI models.** Meter every call, classify **whose
 money it was** (subscription · credits · out-of-pocket), benchmark the market by use case, and
@@ -143,22 +153,16 @@ Run the no-network demo: `node demo.js`
 
 ## Module status
 
-```
-pricing.js   ✅ price table (edit for your stack) · costClass() · selfHostPerMTok()
-meter.js     ✅ usage/decision events → cost + fundingClass + latency → sink; wrap()
-sinks/       ✅ memory · JSONL · Google Sheet (client injected)   ⬜ SQLite · Postgres
-adapters.js  ✅ one OpenAI-compat impl covers openai/xai/openrouter/together/fireworks/
-                groq/ollama/lmstudio; bespoke providers injected as fns; keys injected
-apa.js       ✅ evaluate · projectSavings · adoptGate · considerFinding — the full decision flow
-                with Store/Notify injected (store {recordPrice, incumbent, adopt} · notify
-                {info, propose} · log): swap a Sheet+journal for a JSON-file+Slack and it
-                behaves identically. Scan-prompt ASSEMBLY stays host-side by design — it is
-                context-gathering (credit pools, source scoreboard) from host systems.
-tiers.js     ✅ tier-addressed resolution: resolve('workhorse') / escalate() → model + real
-                cost + funding class + time-sensitive advisories, for downstream agents
-board.js     ◐  compile/parse for market board + benchmark knowledge base (persistence host-side)
-server.js    ⬜ standalone HTTP surface + starter dashboard (second package)
-```
+| Module | | What it does |
+|---|:---:|---|
+| [`pricing.js`](pricing.js) | ✅ | price table (edit for your stack) · `costClass()` · `selfHostPerMTok()` |
+| [`meter.js`](meter.js) | ✅ | usage/decision events → cost + funding class + latency → sink; `wrap()` |
+| [`sinks/`](sinks) | ✅ | memory · JSONL · Google Sheet (client injected) — SQLite · Postgres planned |
+| [`adapters.js`](adapters.js) | ✅ | one OpenAI-compat impl covers openai / xai / openrouter / together / fireworks / groq / ollama / lmstudio; bespoke providers injected as fns; keys injected |
+| [`apa.js`](apa.js) | ✅ | `evaluate` · `projectSavings` · `adoptGate` · `considerFinding` — the full decision flow with Store/Notify injected: swap a Sheet+journal for a JSON-file+Slack and it behaves identically. Scan-prompt *assembly* stays host-side by design — it is context-gathering (credit pools, source scoreboard) from host systems. |
+| [`tiers.js`](tiers.js) | ✅ | tier-addressed resolution: `resolve('workhorse')` / `escalate()` → model + real cost + funding class + time-sensitive advisories, for downstream agents |
+| [`board.js`](board.js) | 🟡 | compile/parse for market board + benchmark knowledge base (persistence host-side) |
+| `server.js` | ⬜ | standalone HTTP surface + starter dashboard (second package) |
 
 ## Design rules
 
