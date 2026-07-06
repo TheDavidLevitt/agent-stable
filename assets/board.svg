@@ -50,12 +50,13 @@
   <line x1="40" y1="280" x2="752" y2="280" stroke="#1a222c"/>
 
   <!-- row 3: incumbent workhorse -->
-  <text x="44" y="318" class="t">gpt-5.1 <tspan class="dim">(incumbent)</tspan></text>
+  <text x="44" y="312" class="t">claude-haiku-4-5</text>
+  <text x="44" y="332" class="dim" font-size="12px">incumbent</text>
   <circle cx="270" cy="313" r="5" fill="#b0785a"/>
   <text x="284" y="318" class="t">workhorse</text>
-  <text x="492" y="318" class="t n">1.25</text>
-  <text x="582" y="318" class="t n">10.00</text>
-  <text x="648" y="318" class="b n">76</text>
+  <text x="492" y="318" class="t n">1.00</text>
+  <text x="582" y="318" class="t n">5.00</text>
+  <text x="648" y="318" class="b n">73</text>
   <rect x="668" y="299" width="84" height="26" rx="13" fill="#3a1d1d"/>
   <text x="710" y="317" text-anchor="middle" class="chip r">real</text>
   <line x1="40" y1="344" x2="752" y2="344" stroke="#1a222c"/>
@@ -90,7 +91,7 @@
   <text x="804" y="140" class="t">gemini-3-flash <tspan class="m">→</tspan> <tspan fill="#b0785a">●</tspan> workhorse</text>
   <text x="804" y="176" class="g">✓ <tspan class="t">runnable</tspan> <tspan class="dim">(probed)</tspan></text>
   <text x="804" y="204" class="g">✓ <tspan class="t">equal-or-better</tspan> <tspan class="dim">(judged head-to-head)</tspan></text>
-  <text x="804" y="232" class="g">✓ <tspan class="t">cheaper</tspan> <tspan class="dim">— projected saving</tspan> <tspan class="y">$204/mo</tspan></text>
+  <text x="804" y="232" class="g">✓ <tspan class="t">cheaper</tspan> <tspan class="dim">— projected saving</tspan> <tspan class="y">$44/mo</tspan></text>
   <rect x="804" y="254" width="92" height="34" rx="8" fill="#1e3a2a" stroke="#2b4a37"/>
   <text x="850" y="276" text-anchor="middle" class="g">adopt</text>
   <rect x="908" y="254" width="92" height="34" rx="8" fill="none" stroke="#3a4658"/>
