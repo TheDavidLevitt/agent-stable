@@ -6,8 +6,13 @@
 > is enough for this task?"** — the community-scale version of agent-stable's private
 > roles/cutoffs, feeding the same `resolve()` idiom.
 
-Status: PROPOSAL, decisions locked 2026-07-11 (see Decisions at bottom). Nothing built.
-Natural home: stableofagents.com (still unregistered — this would be its reason to exist).
+Status: Phase 1 SHIPPING (2026-07-12) at **dashyng.com/agentstable** — read-only, inside
+the existing reference-deployment service. Decisions at bottom.
+
+**Hard rule — no abusable spend surface:** no request path in the Form Guide may reach
+an LLM, ever, at any phase. Hypothesis fitting is pure math on stored reports; anything
+LLM-assisted (seeding priors, merge suggestions) runs offline in the owner's pipeline,
+never on a user-triggered route. Reads are anonymous, cached, and table-lookup only.
 
 ---
 
@@ -140,16 +145,22 @@ shape as `resolve()`, and the APA gains a scan source: community consensus shift
 findings ("SWE-bench 72 now judged adequate for code.debug — candidate for workhorse
 eval"). dashyng.com's public board links each tier to its task-level form.
 
-## Build shape (when approved)
+## Build shape
 
-- **Stack:** Cloud Run Node service + Cloud SQL Postgres (or Supabase to get OAuth+RLS
-  for free in an MVP), same-project as existing services; site is one static page per
-  the existing design language. Domain: stableofagents.com.
-- **Phase 1 (read-only):** schema + APA-board seeding + prior hypotheses + site + API.
-  Useful on day one with zero community.
-- **Phase 2:** OAuth posting, votes, consensus, nightly hypothesis fits.
+- **Phase 1 (read-only, SHIPPED):** lives INSIDE the existing dashboard service at
+  dashyng.com/agentstable — no new infra, no database yet. Taxonomy v0 embedded;
+  board seeded live from the APA compiler's sheet tabs; hypotheses are benchmark
+  mappings only (`basis: prior`, **no fabricated thresholds** — until fitted from real
+  reports, min_score is null and recommend() returns the cheapest of the top-3 on the
+  task's benchmark). GET-only carve-outs, CORS-open, cached.
+- **Phase 2 (when there's an audience):** Postgres + GitHub OAuth posting, votes,
+  consensus, nightly logistic fits replacing priors. Only then does the reference
+  deployment's CI start posting outcomes.
 - **Phase 3:** agent-stable `resolveTask()` client + APA community-scan source +
   qualifier split tests.
+- **Merge/curation tooling: deferred until real usage exists** (owner-decision
+  2026-07-12). Until then, taxonomy-subdivision proposals just accumulate; rare merges
+  are manual. No moderation UI, no LLM-assisted merge suggestions get built yet.
 
 ## Decisions (2026-07-11)
 
