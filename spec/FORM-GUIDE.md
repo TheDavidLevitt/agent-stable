@@ -56,6 +56,17 @@ audience, cheap spam resistance) for posting, anonymous read. Site = one dense d
 per task node + one per model, same design language as the public board at
 dashyng.com/public/agentstable.
 
+**Benchmark backbone: Artificial Analysis (decision 2026-07-14).** AA's data API already
+provides standardized model scores (Intelligence / Coding / Agentic indices, per-benchmark
+detail on paid tiers) and per-token pricing, refreshed as models ship — strictly better
+than maintaining our own scraped board. The Form Guide therefore does NOT compete with AA:
+`models`/`model_benchmarks` below become a *cached mirror* of AA data (free tier, 6h cache,
+attribution on every surface), and the Form Guide's own contribution is exactly the layer
+AA doesn't publish: the task taxonomy, real-world adequacy reports, fitted "what score is
+enough for task X" thresholds, and the recommend API. (AA's coding-agents *harness*
+comparisons are site-only today — not in their API; if that changes, harness becomes a
+report qualifier.)
+
 ```sql
 models            (id, slug, lab, family, os_flag, released_at, deprecated_at)
 model_versions    (id, model_id, version_tag, effective_at)          -- reports pin versions
