@@ -6,8 +6,12 @@
 > is enough for this task?"** — the community-scale version of agent-stable's private
 > roles/cutoffs, feeding the same `resolve()` idiom.
 
-Status: Phase 1 SHIPPING (2026-07-12) at **dashyng.com/agentstable** — read-only, inside
-the existing reference-deployment service. Decisions at bottom.
+Status: SHELVED as a public product (2026-07-14, owner decision). Phase 1 ran publicly at
+dashyng.com/agentstable 07-12→07-14, then moved behind the owner gate: it lives on as the
+reference deployment's private view comparing its own metered outcomes against benchmarks
+(Artificial Analysis backbone). The public/community design below is kept intact should
+usage or demand ever justify reviving it. The anonymous surface that remains public is
+the tier-level endpoint (`/api/public/agentstable/tiers`), not the task-level guide.
 
 **Hard rule — no abusable spend surface:** no request path in the Form Guide may reach
 an LLM, ever, at any phase. Hypothesis fitting is pure math on stored reports; anything
