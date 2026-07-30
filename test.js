@@ -76,7 +76,7 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
 
   // tiers: resolve/escalate with price, funding class, and time-sensitive advisories
   const tiers = createTiers({
-    incumbent: t => ({ workhorse: 'claude-haiku-4-5', steeldust: 'claude-sonnet-5', thoroughbred: 'claude-opus-4-8' })[t],
+    incumbent: t => ({ workhorse: 'claude-haiku-4-5', steeldust: 'claude-sonnet-5', thoroughbred: 'claude-opus-4-8', secretariat: 'claude-fable-5' })[t],
     priceOf: pricing.priceOf, costClass: m => pricing.costClass(m),
     advisories: (m, t) => t === 'workhorse' ? ['gcp credit pool expires 2026-07-16'] : [],
   });
@@ -84,7 +84,8 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   assert(wh.model === 'claude-haiku-4-5' && wh.price.out === 5 && wh.advisories[0].includes('credit pool'), 'tier resolve');
   const esc = tiers.escalate('workhorse');
   assert(esc.tier === 'steeldust' && esc.model === 'claude-sonnet-5' && esc.advisories.some(a => a.includes('intro pricing')), 'escalation returns model + real cost + advisories');
-  assert(tiers.escalate('thoroughbred').advisories.some(a => a.includes('top tier')), 'top-tier escalation capped');
+  assert(tiers.escalate('thoroughbred').tier === 'secretariat', 'thoroughbred escalates to secretariat');
+  assert(tiers.escalate('secretariat').advisories.some(a => a.includes('top tier')), 'top-tier escalation capped');
   assert(tiers.resolve('pony').error, 'unknown tier rejected');
 
   console.log('all agent-stable tests passed');

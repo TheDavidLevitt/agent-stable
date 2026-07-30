@@ -39,6 +39,9 @@ with the current model, its real cost, and anything time- or token-sensitive:
 - **steeldust** — your daily driver; the orchestration layer, escalation from workhorse:
   thesis-led summaries, judgment calls, routing decisions.
 - **thoroughbred** — a top-tier reasoning model; hard analysis, escalation from steeldust.
+- **secretariat** — the stable *on steroids*: a top long-horizon model for multi-hour
+  autonomous work, escalation from thoroughbred. Named for the horse that won the Belmont
+  by 31 lengths — the long-distance record that still stands.
 
 ```js
 const tiers = createTiers({ incumbent: t => store.incumbent(t), priceOf: pricing.priceOf,
