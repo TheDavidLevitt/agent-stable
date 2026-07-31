@@ -67,7 +67,7 @@ flowchart TB
     MET["meter.js\nnormalize event → cost $ +\nfunding class + latency"]
     PRC["pricing.js\nprice table · costClass()\nself-host estimator"]
     APA["apa.js — decision engine\nevaluate(cand vs incumbent)\nprojectSavings() · adoptGate()"]
-    BRD["board.js\ncompile/parse prompts for the\nmarket board + benchmark knowledge"]
+    BRD["board.js\ntier assignment over sourced\nbenchmark rows (e.g. AA API)"]
   end
 
   subgraph sinks["sinks/ (pluggable)"]

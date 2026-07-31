@@ -68,10 +68,14 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   assert(await apa2.considerFinding({ kind: 'release', lab: 'LabX', model: 'cand2', headline: 'h', url: 'u' }, { ...ctx, autoAdopt: false }) === 'tested', 'autoAdopt off');
   assert(await apa2.considerFinding({ kind: 'release', lab: 'LabX', model: 'cand2', headline: 'h', url: 'u' }, { ...ctx, crossProvider: false }) === 'test-recommend', 'crossProvider off');
 
-  // board: prompt build, parse, threshold precedence, fuzzy bench names
+  // board: fromRows normalization + tier assignment, threshold precedence, fuzzy bench names
   const bd = createBoard({ roles: { roles: { steeldust: { primary: 'AA Intelligence', min: 40 } }, all_benchmarks: ['AA Intelligence'], track_non_us_os: 2 }, prices: {}, labs: { us_labs: ['L'], hosting: ['H'] } });
-  const parsed = bd.parseCompile('{"models":[{"model":"m","lab":"L","role":"steeldust","benchmarks":{}}],"cutoffs":{"steeldust":{"min":33}}}');
-  assert(parsed.models.length === 1 && bd.thresholdFor('steeldust', parsed.cutoffs) === 40, 'user threshold wins');
+  const rows = bd.fromRows([
+    { model: 'm-good', lab: 'L', benchmarks: { 'AA Intelligence (index)': 55 }, priceIn: 1, priceOut: 5 },
+    { model: 'm-weak', lab: 'L', benchmarks: { 'AA Intelligence': 12 } },
+  ]);
+  assert(rows.length === 2 && rows[0].role === 'steeldust' && rows[1].role === '', 'fromRows assigns tiers by threshold');
+  assert(bd.thresholdFor('steeldust', {}) === 40, 'user threshold wins');
   assert(bd.sameBench('AA Intelligence (Artificial Analysis)', 'AA Intelligence'), 'fuzzy bench');
 
   // tiers: resolve/escalate with price, funding class, and time-sensitive advisories
