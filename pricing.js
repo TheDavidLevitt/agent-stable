@@ -29,6 +29,9 @@ function priceOf(model) {
 const CREDIT_SPLIT_DAY = Date.UTC(2026, 5, 15);
 function costClass(model, module, atIso) {
   const m = String(model || '').toLowerCase();
+  // Marketplace-routed ids (OpenRouter et al: "anthropic/claude-…", "openrouter:…") are ALWAYS
+  // out-of-pocket — the underlying family's subscription/credit never applies to a reroute.
+  if (m.includes('/') || m.startsWith('openrouter:')) return 'real';
   if (module === 'claw' || (/opus/.test(m) && String(module || '').includes('esc'))) return 'real';
   if (/grok/.test(m)) return 'real';   // xAI is a paid API — out-of-pocket, not a credit or subscription
   if (/gemini|vertex/.test(m)) return 'credit';
