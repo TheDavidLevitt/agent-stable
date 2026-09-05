@@ -3,7 +3,7 @@ const pricing = require('./pricing');
 const { createMeter } = require('./meter');
 const { createAdapters, DEFAULT_BASE } = require('./adapters');
 const { createApa, DEFAULT_EVAL_PROMPTS } = require('./apa');
-const { createBoard } = require('./board');
+const { createBoard, canonical, sameModel, normModel } = require('./board');
 const { createTiers, TIER_ORDER } = require('./tiers');
 const { memorySink } = require('./sinks/memory');
 const { jsonlSink } = require('./sinks/jsonl');
@@ -14,7 +14,7 @@ module.exports = {
   createMeter,
   createAdapters, DEFAULT_BASE,
   createApa, DEFAULT_EVAL_PROMPTS,
-  createBoard,
+  createBoard, canonical, sameModel, normModel,
   createTiers, TIER_ORDER,
   sinks: { memorySink, jsonlSink, sheetSink },
 };

@@ -47,8 +47,8 @@ with the current model, its real cost, and anything time- or token-sensitive:
 const tiers = createTiers({ incumbent: t => store.incumbent(t), priceOf: pricing.priceOf,
   costClass: m => pricing.costClass(m), advisories: (m, t) => myCreditWarnings(m) });
 tiers.escalate('workhorse')
-// → { tier: 'steeldust', model: 'claude-sonnet-5', price: { in: 3, out: 15 },
-//     fundingClass: 'credit', advisories: ['$2/$10 intro pricing through 2026-08-31'] }
+// → { tier: 'steeldust', model: 'claude-sonnet-5', price: { in: 2, out: 10 },
+//     fundingClass: 'credit', advisories: ['credit pool expires in 12 days'] }
 ```
 
 So a bot can run cheap by default, request escalation when it's out of its depth, and be told
@@ -174,7 +174,7 @@ Run the no-network demo — `node demo.js` replays the whole loop:
 | [`adapters.js`](adapters.js) | ✅ | one OpenAI-compat impl covers openai / xai / openrouter / together / fireworks / groq / ollama / lmstudio; bespoke providers injected as fns; keys injected |
 | [`apa.js`](apa.js) | ✅ | `evaluate` · `projectSavings` · `adoptGate` · `considerFinding` — the full decision flow with Store/Notify injected: swap a Sheet+journal for a JSON-file+Slack and it behaves identically. Scan-prompt *assembly* stays host-side by design — it is context-gathering (credit pools, source scoreboard) from host systems. |
 | [`tiers.js`](tiers.js) | ✅ | tier-addressed resolution: `resolve('workhorse')` / `escalate()` → model + real cost + funding class + time-sensitive advisories, for downstream agents |
-| [`board.js`](board.js) | 🟡 | compile/parse for market board + benchmark knowledge base (persistence host-side) |
+| [`board.js`](board.js) | ✅ | tier assignment over sourced benchmark rows (user min ?? cutoff hypothesis) · `canonical()`/`sameModel()` slug families — effort variants (`-xhigh`, `-thinking`, …) and token order (`claude-4-5-haiku` ≡ `claude-haiku-4-5`) resolve to one model · family-aware `winnerOnBoard` · Pareto value walk `bestReplacement` · `recommend()` — the model a role *should* run, with a one-line why (persistence host-side) |
 | `server.js` | ⬜ | standalone HTTP surface + starter dashboard (second package) |
 
 ## Design rules
@@ -192,3 +192,17 @@ Run the no-network demo — `node demo.js` replays the whole loop:
 ## License
 
 MIT
+
+## Changelog
+
+- **0.8.0** — `board.js`: `canonical()` / `sameModel()` slug families (effort variants such as
+  `-xhigh` / `-thinking` and token order such as `claude-4-5-haiku` ≡ `claude-haiku-4-5`
+  resolve to one model); tiering uses the effective threshold (user min ?? cutoff hypothesis);
+  family-aware `winnerOnBoard`; `paretoFrontier` / `bestReplacement` take `fundable`,
+  `includeWinner`, `oneVariantPerBase`; new `recommend()` returns the model a role should run
+  with a one-line why. `pricing.js`: current first-party price table, exact-then-longest-prefix
+  `priceOf`, `costClass` treats unknown ids as paid and credit pools as expired past their date.
+- **0.7.0** — usage-weighted cost (`usageMixOf`, `weightedCost`) and the Pareto value walk in
+  `bestReplacement`; `apa.js` proposes (never adopts) for delisted incumbents.
+- **0.5.0 – 0.6.0** — delisted-winner gate (`winnerOnBoard`, relaxed replacement search);
+  `board.js` assigns the highest cleared tier rather than iteration order.
