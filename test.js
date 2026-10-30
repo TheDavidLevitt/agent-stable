@@ -84,6 +84,14 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   assert(rows.length === 2 && rows[0].role === 'steeldust' && rows[1].role === '', 'fromRows assigns tiers by threshold');
   assert(bd.thresholdFor('steeldust', {}) === 40, 'user threshold wins');
   assert(bd.sameBench('AA Intelligence (Artificial Analysis)', 'AA Intelligence'), 'fuzzy bench');
+  // role assignment: the HIGHEST cleared bar wins regardless of declaration order. The old
+  // loop let the last-declared cleared tier win, so a low-bar tier listed after a high-bar one
+  // claimed every model that cleared both.
+  const tierRow = [{ model: 'm-strong', benchmarks: { 'AA Intelligence': 70 } }, { model: 'm-mid', benchmarks: { 'AA Intelligence': 45 } }];
+  const hiFirst = createBoard({ roles: { roles: { thoroughbred: { primary: 'AA Intelligence', min: 60 }, workhorse: { primary: 'AA Intelligence', min: 30 } } } });
+  const loFirst = createBoard({ roles: { roles: { workhorse: { primary: 'AA Intelligence', min: 30 }, thoroughbred: { primary: 'AA Intelligence', min: 60 } } } });
+  assert.deepStrictEqual(hiFirst.fromRows(tierRow).map(r => r.role), ['thoroughbred', 'workhorse'], 'highest cleared bar wins (high-bar tier declared first)');
+  assert.deepStrictEqual(loFirst.fromRows(tierRow).map(r => r.role), ['thoroughbred', 'workhorse'], 'highest cleared bar wins (low-bar tier declared first)');
 
   // delisted winners: presence detection (name-normalized) + relaxed replacement search
   const bd2 = createBoard({ roles: { roles: { t: { primary: 'AA Intelligence', min: 50, winner: 'old-star.1' } } } });
