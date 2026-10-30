@@ -11,6 +11,9 @@
 // `pricing` = { priceOf(model) → {in,out}|null, costClass(model, module, atIso) → 'real'|'credit'|'included' }.
 // If costUsd is absent on usage events it is computed from the price table; fundingClass is always stamped.
 
+// round to `digits` decimal places (cost in USD is kept to the micro-dollar: roundTo(x, 6))
+const roundTo = (x, digits) => { const f = 10 ** digits; return Math.round(x * f) / f; };
+
 function createMeter({ sink, pricing, host = '', now = () => new Date() } = {}) {
   if (!sink || typeof sink.record !== 'function') throw new Error('meter needs a sink with record(event)');
   const p = pricing || {};
@@ -21,7 +24,7 @@ function createMeter({ sink, pricing, host = '', now = () => new Date() } = {}) 
     let costUsd = e.costUsd;
     if ((costUsd === undefined || costUsd === '' || costUsd === null) && p.priceOf) {
       const pr = p.priceOf(e.model);
-      if (pr) costUsd = Math.round(((+e.input || 0) * pr.in + (+e.output || 0) * pr.out) / 1e6 * 1e6) / 1e6;
+      if (pr) costUsd = roundTo(((+e.input || 0) * pr.in + (+e.output || 0) * pr.out) / 1e6, 6); // prices are per 1M tokens
     }
     return sink.record({
       type: 'usage', at, host: e.host || host,
