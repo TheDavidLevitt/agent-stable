@@ -229,6 +229,12 @@ MIT
 
 ## Changelog
 
+Full history in [CHANGELOG.md](CHANGELOG.md).
+
+- **0.9.0**: unknown numeric meter fields are `null`, not `''` (sheet rows unchanged).
+  `apa.evaluate` defaults to 10 prompts × 2 position-swapped judge passes and accepts a
+  `judges` panel. `priceOf` is order-independent and prices routed ids again. Adds a `VERSION`
+  export.
 - **0.8.0** — `board.js`: `canonical()` / `sameModel()` slug families (effort variants such as
   `-xhigh` / `-thinking` and token order such as `claude-4-5-haiku` ≡ `claude-haiku-4-5`
   resolve to one model); tiering uses the effective threshold (user min ?? cutoff hypothesis);
