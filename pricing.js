@@ -22,15 +22,32 @@ const MODEL_PRICES = {
   'grok-4.6':           { in: 2,    out: 6,    tier: 'grok', note: 'AA-scraped, refine from invoice' },
   'grok-4.3':           { in: 1.25, out: 2.50, tier: 'grok', note: 'AA-scraped, refine from invoice' },
 };
-// exact id first, then the LONGEST key the id starts with (after dropping a -YYYYMMDD
-// snapshot suffix). The old `includes()` scan was order-dependent and would hit
-// 'claude-sonnet-5' for a future 'claude-sonnet-5-1'.
-function priceOf(model) {
-  const m = String(model || '').toLowerCase().replace(/-20\d{6}$/, '').split('/').pop();
-  if (MODEL_PRICES[m]) return MODEL_PRICES[m];
-  const k = Object.keys(MODEL_PRICES).filter(p => m.startsWith(p)).sort((a, b) => b.length - a.length)[0];
-  return k ? MODEL_PRICES[k] : null;
+// Lookup order: exact id, then the LONGEST table key contained in the id at token
+// boundaries. Order-independent by construction — the old `find(includes)` scan returned
+// whichever key came first in the table, so 'claude-fable-5' listed before 'claude-fable-5-1'
+// priced the newer model at the older rate. Before matching, the id is lowercased and a
+// -YYYYMMDD / @YYYYMMDD snapshot suffix is dropped. "Contained" rather than "prefix" because
+// routed ids are real inputs here ('openrouter:claude-opus-5', 'us.anthropic.claude-…-v1:0' —
+// costClass classifies them), and a bare prefix test returns null for them. Token boundaries
+// (no letter/digit on either side of the key) stop 'claude-opus-4-6' from matching a
+// hypothetical 'claude-opus-4-60'. A boundary-separated suffix still falls back to its family
+// row ('claude-sonnet-5-1' → 'claude-sonnet-5'); add an explicit row when a variant's price differs.
+function priceFrom(table, model) {
+  const id = String(model || '').toLowerCase().trim().replace(/[-@]20\d{6}$/, '');
+  const bare = id.split('/').pop().replace(/^[a-z0-9_-]+:/, '');
+  if (Object.prototype.hasOwnProperty.call(table, id)) return table[id];
+  if (Object.prototype.hasOwnProperty.call(table, bare)) return table[bare];
+  let best = null;
+  for (const k of Object.keys(table)) {
+    if (best && k.length <= best.length) continue;
+    for (let i = id.indexOf(k); i >= 0; i = id.indexOf(k, i + 1)) {
+      const before = id[i - 1], after = id[i + k.length];
+      if ((!before || !/[a-z0-9]/.test(before)) && (!after || !/[a-z0-9]/.test(after))) { best = k; break; }
+    }
+  }
+  return best ? table[best] : null;
 }
+const priceOf = model => priceFrom(MODEL_PRICES, model);
 
 // Source-of-funds classification — the distinctive idea of agent-stable: not just how much a
 // call cost, but WHOSE money it was. 'real' = out-of-pocket (paid API keys); 'credit' = finite
@@ -90,4 +107,4 @@ function weightedCost(price, mix) {
   return price.in * wIn + price.out * wOut;
 }
 
-module.exports = { MODEL_PRICES, priceOf, costClass, CREDIT_SPLIT_DAY, GCP_TRIAL_END, SELF_HOST_DEFAULTS, selfHostPerMTok, usageMixOf, weightedCost };
+module.exports = { MODEL_PRICES, priceOf, priceFrom, costClass, CREDIT_SPLIT_DAY, GCP_TRIAL_END, SELF_HOST_DEFAULTS, selfHostPerMTok, usageMixOf, weightedCost };

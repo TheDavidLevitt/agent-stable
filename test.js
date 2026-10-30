@@ -6,7 +6,21 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   // pricing
   assert(pricing.priceOf('claude-sonnet-5').out === 10, 'priceOf');
   assert(pricing.priceOf('claude-opus-5-20260401').in === 5, 'priceOf strips a snapshot suffix');
-  assert(pricing.priceOf('claude-sonnet-5-1') === null || pricing.priceOf('claude-sonnet-5-1').in === 2, 'prefix match is longest-key');
+  assert(pricing.priceOf('claude-sonnet-5-1').in === 2, 'an unlisted point release falls back to its family row');
+  assert(pricing.priceOf('openrouter:claude-opus-5').in === 5 && pricing.priceOf('anthropic/claude-haiku-4-5').in === 1, 'routed ids are priced');
+  assert(pricing.priceOf('nope-1') === null && pricing.priceOf('') === null, 'unknown ids → null');
+  // order-independence: the old `find(includes)` scan returned the FIRST contained key, so with
+  // the shorter family key listed first the newer model got the older model's price.
+  const famFirst = { 'claude-fable-5': { in: 10 }, 'claude-fable-5-1': { in: 7 } };
+  const famLast = { 'claude-fable-5-1': { in: 7 }, 'claude-fable-5': { in: 10 } };
+  for (const t of [famFirst, famLast]) {
+    assert(pricing.priceFrom(t, 'claude-fable-5-1').in === 7, 'exact id wins over a shorter contained key');
+    assert(pricing.priceFrom(t, 'claude-fable-5-1-20260901').in === 7, 'snapshot suffix dropped, then exact');
+    assert(pricing.priceFrom(t, 'openrouter:claude-fable-5-1').in === 7, 'routing prefix dropped, then exact');
+    assert(pricing.priceFrom(t, 'us.anthropic.claude-fable-5-1-v1:0').in === 7, 'longest contained key wins');
+    assert(pricing.priceFrom(t, 'claude-fable-5-thinking').in === 10, 'variant suffix falls back to the family row');
+    assert(pricing.priceFrom(t, 'claude-fable-50') === null, 'no match across a token boundary');
+  }
   assert(pricing.costClass('glm-5-3-flash', 'nightly') === 'real', 'unknown ids are paid APIs, not subscription');
   assert(pricing.costClass('claude-haiku-4-5', 'claw:main') === 'real', 'claw sub-modules are metered');
   assert(pricing.costClass('gemini-2.5-flash', 'summary', '2026-08-01T00:00:00Z') === 'real', 'vertex after the trial is real money');
