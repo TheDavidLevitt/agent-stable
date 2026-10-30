@@ -4,6 +4,9 @@
 // downstream consumers (aggregations, CI) keep working unchanged:
 //   Usage:     [at, host, module, model, input, output, costUsd, note]
 //   Decisions: [at, host, module, actor, decision, why, parent, taskRef, costUsd]
+// Unknown numbers arrive as null (see meter.js) and are written as '' — the blank cell these
+// tabs have always held — so rows stay byte-identical for existing readers.
+const cell = v => (v === null || v === undefined ? '' : v);
 function sheetSink({ sheets, spreadsheetId, usageTab = 'Usage', decisionsTab = 'Decisions' }) {
   if (!sheets || !spreadsheetId) throw new Error('sheetSink needs { sheets, spreadsheetId }');
   const append = (tab, row) => sheets.spreadsheets.values.append({
@@ -13,9 +16,9 @@ function sheetSink({ sheets, spreadsheetId, usageTab = 'Usage', decisionsTab = '
   return {
     async record(e) {
       if (e.type === 'decision') {
-        await append(decisionsTab, [e.at, e.host, e.module, e.actor, e.decision, e.why, e.parent, e.taskRef, e.costUsd]);
+        await append(decisionsTab, [e.at, e.host, e.module, e.actor, e.decision, e.why, e.parent, e.taskRef, cell(e.costUsd)]);
       } else {
-        await append(usageTab, [e.at, e.host, e.module, e.model, e.input, e.output, e.costUsd, e.note]);
+        await append(usageTab, [e.at, e.host, e.module, e.model, cell(e.input), cell(e.output), cell(e.costUsd), e.note]);
       }
       return e;
     },

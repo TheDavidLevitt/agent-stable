@@ -47,8 +47,8 @@ with the current model, its real cost, and anything time- or token-sensitive:
 const tiers = createTiers({ incumbent: t => store.incumbent(t), priceOf: pricing.priceOf,
   costClass: m => pricing.costClass(m), advisories: (m, t) => myCreditWarnings(m) });
 tiers.escalate('workhorse')
-// → { tier: 'steeldust', model: 'claude-sonnet-5', price: { in: 3, out: 15 },
-//     fundingClass: 'credit', advisories: ['$2/$10 intro pricing through 2026-08-31'] }
+// → { tier: 'steeldust', model: 'claude-sonnet-5', price: { in: 2, out: 10 },
+//     fundingClass: 'credit', advisories: ['credit pool expires in 12 days'] }
 ```
 
 So a bot can run cheap by default, request escalation when it's out of its depth, and be told
@@ -160,6 +160,30 @@ const verdict = await apa.evaluate({ id: 'candidate', provider: 'ollama' }, { id
 console.log(apa.adoptGate(verdict, { autoAdopt: true }));
 ```
 
+### How far to trust the verdict
+
+`evaluate()` is a **smoke test for quality parity, not a measurement.** Know its limits before
+letting `autoAdopt` act on it:
+
+- **Small n, one task style.** The default suite is 10 prompts, all exec-summary / extraction /
+  "so what" tasks. It says little about coding, long-context, tool use, or anything unlike
+  those prompts. Pass your own `evalPrompts` drawn from the module's real traffic.
+- **Judge bias.** LLM judges prefer whichever answer is shown first (position bias), favour
+  output that sounds like their own model (self-preference), and reward length. Two passes
+  with the candidate's position swapped are the default, and `qualityOK` needs a **strict
+  majority** of passes, so with two passes both must agree. Position bias alone can't adopt.
+  For self-preference, pass `judges: [a, b]` from two different labs.
+- **No confidence interval.** The verdict is one boolean per pass over the whole suite, so
+  there is no per-task score, variance, or significance test. `quality` is the share of
+  passes that agreed, not a probability. Treat a pass as "no visible regression on these
+  prompts" and keep adoptions reversible (they are).
+
+The defaults went from 3 prompts × 1 judge pass to 10 prompts × 2 passes. Per evaluation that
+is ~3.3× the candidate + incumbent calls (20 instead of 6) and ~6.7× the judge tokens (two
+prompts, each ~3.3× longer). The judge is usually the priciest model in the loop, so expect
+roughly **6–7× the previous cost per eval**. `judgePasses: 1` plus a shorter `evalPrompts`
+restores the old cost.
+
 Run the no-network demo — `node demo.js` replays the whole loop:
 
 <img src="assets/demo.svg" alt="Animated terminal replay of node demo.js: meter three calls, judge a challenger head-to-head, gate adoption, project $204/mo saving" width="100%">
@@ -174,7 +198,7 @@ Run the no-network demo — `node demo.js` replays the whole loop:
 | [`adapters.js`](adapters.js) | ✅ | one OpenAI-compat impl covers openai / xai / openrouter / together / fireworks / groq / ollama / lmstudio; bespoke providers injected as fns; keys injected |
 | [`apa.js`](apa.js) | ✅ | `evaluate` · `projectSavings` · `adoptGate` · `considerFinding` — the full decision flow with Store/Notify injected: swap a Sheet+journal for a JSON-file+Slack and it behaves identically. Scan-prompt *assembly* stays host-side by design — it is context-gathering (credit pools, source scoreboard) from host systems. |
 | [`tiers.js`](tiers.js) | ✅ | tier-addressed resolution: `resolve('workhorse')` / `escalate()` → model + real cost + funding class + time-sensitive advisories, for downstream agents |
-| [`board.js`](board.js) | 🟡 | compile/parse for market board + benchmark knowledge base (persistence host-side) |
+| [`board.js`](board.js) | ✅ | tier assignment over sourced benchmark rows (user min ?? cutoff hypothesis) · `canonical()`/`sameModel()` slug families — effort variants (`-xhigh`, `-thinking`, …) and token order (`claude-4-5-haiku` ≡ `claude-haiku-4-5`) resolve to one model · family-aware `winnerOnBoard` · Pareto value walk `bestReplacement` · `recommend()` — the model a role *should* run, with a one-line why (persistence host-side) |
 | `server.js` | ⬜ | standalone HTTP surface + starter dashboard (second package) |
 
 ## Design rules
@@ -189,6 +213,36 @@ Run the no-network demo — `node demo.js` replays the whole loop:
 5. **Reversible autonomy.** Adopt decisions are gated, probe-guarded, logged with projected
    savings, and revertible per module.
 
+## Vendoring
+
+Installing from npm is the simplest route. If you vendor the package as a directory inside
+your app instead, keep the sync **one-way**: this repo is the source of truth, and the
+vendored copy is a verbatim copy of a pinned tag. Copy the `files` whitelist from
+`package.json` plus `package.json`, `README.md` and `LICENSE`. Have CI rebuild that copy from
+the pinned tag and fail on any diff. Never edit the copy in place; fix things here and re-sync.
+`require('agent-stable').VERSION` (or `require('./stable').VERSION`) reports which release a
+copy is.
+
 ## License
 
 MIT
+
+## Changelog
+
+Full history in [CHANGELOG.md](CHANGELOG.md).
+
+- **0.9.0**: unknown numeric meter fields are `null`, not `''` (sheet rows unchanged).
+  `apa.evaluate` defaults to 10 prompts × 2 position-swapped judge passes and accepts a
+  `judges` panel. `priceOf` is order-independent and prices routed ids again. Adds a `VERSION`
+  export.
+- **0.8.0** — `board.js`: `canonical()` / `sameModel()` slug families (effort variants such as
+  `-xhigh` / `-thinking` and token order such as `claude-4-5-haiku` ≡ `claude-haiku-4-5`
+  resolve to one model); tiering uses the effective threshold (user min ?? cutoff hypothesis);
+  family-aware `winnerOnBoard`; `paretoFrontier` / `bestReplacement` take `fundable`,
+  `includeWinner`, `oneVariantPerBase`; new `recommend()` returns the model a role should run
+  with a one-line why. `pricing.js`: current first-party price table, exact-then-longest-prefix
+  `priceOf`, `costClass` treats unknown ids as paid and credit pools as expired past their date.
+- **0.7.0** — usage-weighted cost (`usageMixOf`, `weightedCost`) and the Pareto value walk in
+  `bestReplacement`; `apa.js` proposes (never adopts) for delisted incumbents.
+- **0.5.0 – 0.6.0** — delisted-winner gate (`winnerOnBoard`, relaxed replacement search);
+  `board.js` assigns the highest cleared tier rather than iteration order.

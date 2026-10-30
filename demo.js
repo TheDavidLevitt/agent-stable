@@ -31,7 +31,9 @@ const mock = {
   console.log('2) a challenger appears — head-to-head eval, judged…');
   const apa = createApa({
     adapters, priceOf,
-    judge: async () => '{"a_better_or_equal": true, "note": "A leads with the thesis and contextualizes every figure"}',
+    // a stand-in judge that prefers the challenger in either position (the engine runs two
+    // passes and swaps which side the challenger is shown on)
+    judge: async p => JSON.stringify({ [/"b_better_or_equal"/.test(p) ? 'b_better_or_equal' : 'a_better_or_equal']: true, note: 'the challenger leads with the thesis and contextualizes every figure' }),
     usageHistory: async () => sink.query({ type: 'usage' }),
   });
   const verdict = await apa.evaluate({ id: 'newmodel', provider: 'demo' }, { id: 'oldmodel', provider: 'demo' });
