@@ -160,6 +160,30 @@ const verdict = await apa.evaluate({ id: 'candidate', provider: 'ollama' }, { id
 console.log(apa.adoptGate(verdict, { autoAdopt: true }));
 ```
 
+### How far to trust the verdict
+
+`evaluate()` is a **smoke test for quality parity, not a measurement.** Know its limits before
+letting `autoAdopt` act on it:
+
+- **Small n, one task style.** The default suite is 10 prompts, all exec-summary / extraction /
+  "so what" tasks. It says little about coding, long-context, tool use, or anything unlike
+  those prompts. Pass your own `evalPrompts` drawn from the module's real traffic.
+- **Judge bias.** LLM judges prefer whichever answer is shown first (position bias), favour
+  output that sounds like their own model (self-preference), and reward length. Two passes
+  with the candidate's position swapped are the default, and `qualityOK` needs a **strict
+  majority** of passes, so with two passes both must agree. Position bias alone can't adopt.
+  For self-preference, pass `judges: [a, b]` from two different labs.
+- **No confidence interval.** The verdict is one boolean per pass over the whole suite, so
+  there is no per-task score, variance, or significance test. `quality` is the share of
+  passes that agreed, not a probability. Treat a pass as "no visible regression on these
+  prompts" and keep adoptions reversible (they are).
+
+The defaults went from 3 prompts × 1 judge pass to 10 prompts × 2 passes. Per evaluation that
+is ~3.3× the candidate + incumbent calls (20 instead of 6) and ~6.7× the judge tokens (two
+prompts, each ~3.3× longer). The judge is usually the priciest model in the loop, so expect
+roughly **6–7× the previous cost per eval**. `judgePasses: 1` plus a shorter `evalPrompts`
+restores the old cost.
+
 Run the no-network demo — `node demo.js` replays the whole loop:
 
 <img src="assets/demo.svg" alt="Animated terminal replay of node demo.js: meter three calls, judge a challenger head-to-head, gate adoption, project $204/mo saving" width="100%">

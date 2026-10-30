@@ -6,20 +6,38 @@
 //     adapters,                       // stable/adapters createAdapters() instance
 //     priceOf(model) → {in,out}|null, // include any scraped-price overlay the host keeps
 //     judge(prompt) → Promise<text>,  // an LLM call for the quality verdict (host picks model)
+//     judges?: [judge, …],            // OR a panel of distinct judges (e.g. two labs) — overrides judge
+//     judgePasses?: 2,                // with a single `judge`: how many passes (positions alternate)
 //     usageHistory() → Promise<[{at, module, input, output}]>,  // for savings projection
 //     evalPrompts?: [string],         // fixed benchmark tasks (defaults below)
 //   })
 // The host keeps: scanning/scraping, storage, notifications, and the adopt WRITE — this module
 // returns verdicts and recommendations; committing them is the host's (reversible, logged) act.
+//
+// Evaluation limits (see README "How far to trust the verdict"): the default suite is 10
+// prompts in one style (exec summaries / extraction / "so what"), graded by LLM judges. That
+// is a smoke test of quality parity, not a measurement — no confidence interval, and judges
+// carry position and self-preference bias. Two cheap mitigations are on by default: each
+// judge pass alternates which side the candidate is shown on, and the verdict needs a STRICT
+// majority of passes (with 2 passes: both), so a judge that just prefers "A" can't adopt.
 
 const DEFAULT_EVAL_PROMPTS = [
   'Summarize for a busy exec: "The central bank held rates at 4.75% but signaled two cuts in 2026, citing cooling core inflation (3.1%, down from 3.8%)." Lead with the thesis, then the key numbers in context. 3 lines.',
   'Extract the decisions and figures: "The board approved a $2.4bn buyback, raised the dividend 12% to $0.84, and added $500m to R&D." One dense line each.',
   'Give the "so what" of: "A startup open-sourced a 7B model matching GPT-4o-mini on MMLU at 1/20th the inference cost." 3 lines, lead with why it matters.',
+  'Summarize for a busy exec: "Q3 revenue rose 9% to $1.82bn, but operating margin fell from 21% to 17% as cloud costs grew 34%; guidance was cut to 6-7% growth." Lead with the thesis, then the key numbers in context. 3 lines.',
+  'Extract the commitments and figures: "The city will spend $310m over five years on transit, add 42 electric buses by 2027, and cut fares 15% for riders under 25." One dense line each.',
+  'Give the "so what" of: "Global container freight rates doubled in six weeks after a canal closure added 9-12 days to Asia-Europe routes." 3 lines, lead with why it matters.',
+  'Summarize for a busy exec: "Unemployment ticked up to 4.4% from 4.1% while wage growth slowed to 3.2%; job openings fell to 7.1m, the lowest since 2021." Lead with the thesis, then the key numbers in context. 3 lines.',
+  'Extract the terms: "The acquirer pays $48 per share, a 31% premium, half in cash and half in stock, valuing the target at $6.3bn including $900m of debt; closing expected in Q2." One dense line each.',
+  'Give the "so what" of: "A battery maker began shipping sodium-ion cells at $55/kWh, about 40% below comparable lithium-iron-phosphate packs, with 20% lower energy density." 3 lines, lead with why it matters.',
+  'Compare and conclude: "Plan A costs $120k upfront and $8k/yr; Plan B costs $40k upfront and $26k/yr. Both last 8 years." Which is cheaper over the life, by how much, and at what year do they break even? 3 lines, lead with the answer.',
 ];
 
-function createApa({ adapters, priceOf, judge, usageHistory, evalPrompts = DEFAULT_EVAL_PROMPTS } = {}) {
-  if (!adapters || !priceOf || !judge) throw new Error('createApa needs { adapters, priceOf, judge }');
+function createApa({ adapters, priceOf, judge, judges, judgePasses = 2, usageHistory, evalPrompts = DEFAULT_EVAL_PROMPTS } = {}) {
+  const panel = Array.isArray(judges) && judges.length ? judges
+    : (judge ? Array.from({ length: Math.max(1, judgePasses | 0) }, () => judge) : []);
+  if (!adapters || !priceOf || !panel.length) throw new Error('createApa needs { adapters, priceOf, judge | judges }');
 
   // run the fixed benchmark on one model; null = not runnable (bad id / missing provider)
   async function runSuite({ id, provider }) {
@@ -33,18 +51,39 @@ function createApa({ adapters, priceOf, judge, usageHistory, evalPrompts = DEFAU
     return outs;
   }
 
-  // head-to-head: candidate vs incumbent → { qualityOK, cheaper, note, cp, ip } | null (unrunnable)
+  // One judge prompt. Unswapped: candidate is A, incumbent is B, the judge answers
+  // a_better_or_equal (the original wording). Swapped: incumbent is A, candidate is B, the
+  // judge answers b_better_or_equal — so a judge that always favours one position votes
+  // for the candidate in one pass and against it in the other.
+  function judgePrompt(candOuts, incOuts, swapped) {
+    const [A, B] = swapped ? [incOuts, candOuts] : [candOuts, incOuts];
+    const subj = swapped ? 'B' : 'A', other = swapped ? 'A' : 'B', key = `${subj.toLowerCase()}_better_or_equal`;
+    const prompt = `You are grading two assistants (A and B) on the SAME ${evalPrompts.length} tasks (lead with thesis, contextualize numbers, be dense). ` +
+      evalPrompts.map((p, i) => `\n--- Task ${i + 1}: ${p}\nA: ${A[i]}\nB: ${B[i]}`).join('') +
+      `\nReturn STRICT JSON only: {"${key}": true|false, "note": "one line"}. ${subj} must be at least as good as ${other} on quality to be true.`;
+    return { key, prompt };
+  }
+  // a judge that throws or returns unparseable text votes "not better" (LESSONS #8)
+  async function vote(j, candOuts, incOuts, swapped) {
+    const { key, prompt } = judgePrompt(candOuts, incOuts, swapped);
+    try {
+      const v = JSON.parse((String(await j(prompt)).match(/\{[\s\S]*\}/) || ['{}'])[0]);
+      return { ok: !!v[key], note: String(v.note || '') };
+    } catch (e) { return { ok: false, note: '' }; }
+  }
+
+  // head-to-head: candidate vs incumbent → { qualityOK, quality, votes, cheaper, note, cp, ip } | null (unrunnable)
+  // quality = share of judge passes saying candidate ≥ incumbent; qualityOK needs a strict majority.
   async function evaluate(cand, inc) {
     const [candOuts, incOuts] = await Promise.all([runSuite(cand), runSuite(inc)]);
     if (!candOuts || !incOuts) return null;
-    const judgePrompt = `You are grading two assistants (A and B) on the SAME ${evalPrompts.length} tasks (lead with thesis, contextualize numbers, be dense). ` +
-      evalPrompts.map((p, i) => `\n--- Task ${i + 1}: ${p}\nA: ${candOuts[i]}\nB: ${incOuts[i]}`).join('') +
-      `\nReturn STRICT JSON only: {"a_better_or_equal": true|false, "note": "one line"}. A must be at least as good as B on quality to be true.`;
-    let verdict = { a_better_or_equal: false };
-    try { verdict = JSON.parse((String(await judge(judgePrompt)).match(/\{[\s\S]*\}/) || ['{}'])[0]); } catch (e) {}
+    const results = await Promise.all(panel.map((j, i) => vote(j, candOuts, incOuts, i % 2 === 1)));
+    const votes = results.map(r => r.ok);
+    const quality = votes.filter(Boolean).length / votes.length;
+    const note = [...new Set(results.map(r => r.note).filter(Boolean))].join(' | ');
     const cp = priceOf(cand.id), ip = priceOf(inc.id);
     const cheaper = cp && ip && (cp.in + cp.out) < (ip.in + ip.out);
-    return { qualityOK: !!verdict.a_better_or_equal, cheaper, note: verdict.note || '', cp, ip };
+    return { qualityOK: quality > 0.5, quality, votes, cheaper, note, cp, ip };
   }
 
   // projected $ saved over the trailing `days` if `module` switched inc→cand (≈ $/month at 30d)

@@ -14,7 +14,7 @@ pricing.js    MODEL_PRICES table · priceOf() · costClass() · selfHostPerMTok(
 meter.js      createMeter({sink, pricing, host}) → usage() · decision() · wrap()
 sinks/        memory (ring buffer + query) · jsonl (fs injected) · sheet (client injected)
 adapters.js   createAdapters(cfg) → call({provider, model, prompt}) → {text, usage, latencyMs}
-apa.js        createApa({adapters, priceOf, judge, usageHistory}) → evaluate ·
+apa.js        createApa({adapters, priceOf, judge|judges, usageHistory}) → evaluate ·
               projectSavings · adoptGate · considerFinding
 board.js      createBoard({roles, prices, labs}) → compilePrompt/parseCompile ·
               benchPrompt/parseBench · thresholdFor · sameBench
@@ -70,8 +70,10 @@ Adoption requires all four, in one gate function (`adoptGate`):
 
 1. **Runnable** — the candidate completed the full eval suite via a real adapter call;
    a model that can't be probed can never be adopted (unrunnable → recommend for review).
-2. **Equal-or-better** — an LLM judge grades candidate vs incumbent on the same fixed
-   task suite; ties go to quality-OK only if explicitly at-least-as-good.
+2. **Equal-or-better** — LLM judge passes grade candidate vs incumbent on the same fixed
+   task suite (default 10 prompts, 2 passes with the candidate's A/B position swapped, or a
+   `judges` panel); quality-OK needs a strict majority of passes saying at-least-as-good.
+   A smoke test, not a measurement: small n, judge bias, no confidence interval (README).
 3. **Cheaper** — combined in+out list price strictly below the incumbent's.
 4. **autoAdopt on** — otherwise the result is a proposal, not a write.
 

@@ -1,6 +1,6 @@
 // agent-stable tests — plain-Node asserts, no framework, no network.  node test.js
 const assert = require('assert');
-const { createMeter, createAdapters, createApa, createBoard, createTiers, pricing, sinks } = require('./index');
+const { createMeter, createAdapters, createApa, DEFAULT_EVAL_PROMPTS, createBoard, createTiers, pricing, sinks } = require('./index');
 
 (async () => {
   // pricing
@@ -70,10 +70,12 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   await assert.rejects(() => ad.call({ provider: 'together', model: 'm', prompt: 'p' }), /no adapter/, 'unconfigured throws');
 
   // apa engine: verdict, gate on/off, savings math, probe-guard
+  // a fake judge that says "candidate ≥ incumbent" in whichever position the prompt asks about
+  const agreeJudge = async p => /"b_better_or_equal"/.test(p) ? '{"b_better_or_equal": true, "note": "ok"}' : '{"a_better_or_equal": true, "note": "ok"}';
   const apa = createApa({
     adapters: { call: async ({ model }) => ({ text: 'answer from ' + model, usage: {} }) },
     priceOf: m => m === 'cand' ? { in: 1, out: 5 } : { in: 3, out: 15 },
-    judge: async () => '{"a_better_or_equal": true, "note": "ok"}',
+    judge: agreeJudge,
     usageHistory: async () => [{ at: new Date().toISOString(), module: 's', input: 1e6, output: 1e5 }],
   });
   const ev = await apa.evaluate({ id: 'cand', provider: 'x' }, { id: 'inc', provider: 'x' });
@@ -82,6 +84,31 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   assert(apa.adoptGate(ev, { autoAdopt: false }).adopt === false, 'gate off');
   assert(apa.adoptGate(null).adopt === false, 'unrunnable never adopts');
   assert(await apa.projectSavings('s', 'inc', 'cand') === 3, 'savings math');
+
+  // apa eval defaults: ≥10 prompts, 2 judge passes with the candidate's position alternated
+  assert(DEFAULT_EVAL_PROMPTS.length >= 10, 'default suite has at least 10 prompts');
+  const seenPrompts = [], calls2 = [];
+  const fakeAd = { call: async ({ model, prompt }) => { calls2.push(model); return { text: 'out-' + model + '-' + prompt.length, usage: {} }; } };
+  const apaP = createApa({ adapters: fakeAd, priceOf: () => ({ in: 1, out: 1 }), judge: async p => { seenPrompts.push(p); return agreeJudge(p); } });
+  const evP = await apaP.evaluate({ id: 'cand', provider: 'x' }, { id: 'inc', provider: 'x' });
+  assert(calls2.length === 2 * DEFAULT_EVAL_PROMPTS.length, 'every default prompt runs on both models');
+  assert(seenPrompts.length === 2, 'a single judge runs two passes by default');
+  assert(/A: out-cand/.test(seenPrompts[0]) && /"a_better_or_equal"/.test(seenPrompts[0]), 'pass 1: candidate shown as A');
+  assert(/A: out-inc/.test(seenPrompts[1]) && /B: out-cand/.test(seenPrompts[1]) && /"b_better_or_equal"/.test(seenPrompts[1]), 'pass 2: candidate shown as B');
+  assert(evP.qualityOK && evP.quality === 1 && evP.votes.length === 2, 'consistent judge → quality 1');
+  // a position-biased judge (always prefers whichever answer is labelled A) used to decide alone
+  const biased = async p => /"b_better_or_equal"/.test(p) ? '{"b_better_or_equal": false}' : '{"a_better_or_equal": true}';
+  const evB = await createApa({ adapters: fakeAd, priceOf: () => ({ in: 1, out: 1 }), judge: biased }).evaluate({ id: 'c', provider: 'x' }, { id: 'i', provider: 'x' });
+  assert(evB.quality === 0.5 && !evB.qualityOK, 'position-biased judge cannot carry the verdict');
+  assert((await createApa({ adapters: fakeAd, priceOf: () => ({ in: 1, out: 1 }), judge: biased, judgePasses: 1 }).evaluate({ id: 'c', provider: 'x' }, { id: 'i', provider: 'x' })).qualityOK, 'judgePasses: 1 restores the single-pass behaviour');
+  // a panel of distinct judges: strict majority; a throwing or garbled judge votes no
+  const panelEval = js => createApa({ adapters: fakeAd, priceOf: () => ({ in: 1, out: 1 }), judges: js }).evaluate({ id: 'c', provider: 'x' }, { id: 'i', provider: 'x' });
+  assert((await panelEval([agreeJudge, agreeJudge])).qualityOK, 'panel: both agree → ok');
+  assert(!(await panelEval([agreeJudge, async () => { throw new Error('down'); }])).qualityOK, 'panel: a failing judge is a no vote');
+  assert(!(await panelEval([agreeJudge, async () => 'not json'])).qualityOK, 'panel: unparseable verdict is a no vote');
+  const ev3of = await panelEval([agreeJudge, agreeJudge, async () => '{}']);
+  assert(ev3of.qualityOK && Math.abs(ev3of.quality - 2 / 3) < 1e-9, 'panel: 2 of 3 is a strict majority');
+  assert.throws(() => createApa({ adapters: fakeAd, priceOf: () => null }), /judge/, 'a judge is required');
 
   // considerFinding: the Store/Notify boundary — all four outcomes via injected hooks
   const ev2 = { info: [], propose: [], adopt: [] };
@@ -94,7 +121,7 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   const apa2 = createApa({
     adapters: { call: async ({ model }) => ({ text: 'a ' + model, usage: {} }) },
     priceOf: m => m === 'cand2' ? { in: 1, out: 5 } : { in: 3, out: 15 },
-    judge: async () => '{"a_better_or_equal": true, "note": "ok"}',
+    judge: agreeJudge,
     usageHistory: async () => [],
   });
   assert(await apa2.considerFinding({ kind: 'price', lab: 'Other', model: 'x', headline: 'h', url: 'u' }, ctx) === 'arbitrage', 'proposal path');
@@ -178,7 +205,7 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   const apa3 = createApa({
     adapters: { call: async ({ model }) => ({ text: 'a ' + model, usage: {} }) },
     priceOf: () => ({ in: 3, out: 15 }), // equal prices: strict gate would freeze forever
-    judge: async () => '{"a_better_or_equal": true, "note": "ok"}',
+    judge: agreeJudge,
     usageHistory: async () => [],
   });
   const ctx3 = {
