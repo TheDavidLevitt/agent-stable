@@ -33,7 +33,9 @@ decision: { type:'decision', at, host, module, actor, decision, why,
 ```
 
 `costUsd` is computed from the price table when absent; `fundingClass`
-(`real|credit|included`) is always stamped. `decision` events are the audit trail — every
+(`real|credit|included`) is always stamped. Numeric fields (`input`, `output`, `costUsd`,
+`latencyMs`) are a number or `null` when unknown, never `''`; the sheet sink writes `null` as a
+blank cell so existing tab readers see unchanged rows. `decision` events are the audit trail — every
 APA outcome (adopt, propose, defer, tested-and-rejected) writes one.
 
 ## Host integration (the embedding pattern)

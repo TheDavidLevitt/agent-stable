@@ -44,6 +44,20 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   const m2 = createMeter({ sink: sheet, pricing, host: 'h', now: () => new Date('2026-01-01T00:00:00Z') });
   await m2.usage({ module: 'mod', model: 'claude-haiku-4-5', input: 5, output: 6, note: 'n' });
   assert.deepStrictEqual(calls[0].requestBody.values[0], ['2026-01-01T00:00:00.000Z', 'h', 'mod', 'claude-haiku-4-5', 5, 6, 0.000035, 'n'], 'usage row shape');
+  // unknown numbers: events carry null (one type per field), sheet rows keep the blank cell they always had
+  await m2.usage({ module: 'mod', model: 'unpriced-model', note: 'n' });
+  await m2.usage({ module: 'mod', model: 'unpriced-model', input: 0, output: 0, costUsd: '', note: 'legacy blank' });
+  await m2.decision({ module: 'mod', actor: 'apa', decision: 'd' });
+  assert.deepStrictEqual(calls[1].requestBody.values[0], ['2026-01-01T00:00:00.000Z', 'h', 'mod', 'unpriced-model', '', '', '', 'n'], 'unknown numbers render as blank cells');
+  assert.deepStrictEqual(calls[2].requestBody.values[0], ['2026-01-01T00:00:00.000Z', 'h', 'mod', 'unpriced-model', 0, 0, '', 'legacy blank'], 'zero stays zero; legacy costUsd "" still blank');
+  assert.deepStrictEqual(calls[3].requestBody.values[0], ['2026-01-01T00:00:00.000Z', 'h', 'mod', 'apa', 'd', '', '', '', ''], 'decision row shape');
+  const mem2 = sinks.memorySink();
+  const m3 = createMeter({ sink: mem2, pricing });
+  await m3.usage({ module: 'mod', model: 'unpriced-model', costUsd: '' });
+  await m3.decision({ module: 'mod' });
+  const [u0, d0] = mem2.events;
+  assert(u0.input === null && u0.output === null && u0.costUsd === null && u0.latencyMs === null, 'usage: unknown numbers are null, not ""');
+  assert(d0.costUsd === null, 'decision: unknown costUsd is null');
 
   // adapters: openai-compat protocol via mock fetch; keyless local; unconfigured throws
   const seen = [];

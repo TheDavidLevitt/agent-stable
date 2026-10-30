@@ -137,7 +137,7 @@ function createApa({ adapters, priceOf, judge, usageHistory, evalPrompts = DEFAU
     if (gate.adopt) {
       store.adopt(module, candId, `${gate.reason}: ${ev.note}`);
       notify.info(`  ↳ **ADOPTED** ${candId} (${f.lab}) for ${module} (${gate.reason}).${savLine} Reversible via the dashboard.`);
-      await log({ decision: `auto-adopt ${candId} for ${module}`, why: `${gate.reason}. ${ev.note}`, taskRef: f.url, costUsd: savings != null ? -savings : '' });
+      await log({ decision: `auto-adopt ${candId} for ${module}`, why: `${gate.reason}. ${ev.note}`, taskRef: f.url, costUsd: savings != null ? -savings : null });
       return 'adopted';
     }
     if (gate.propose) {
