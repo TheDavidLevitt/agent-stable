@@ -213,6 +213,16 @@ Run the no-network demo — `node demo.js` replays the whole loop:
 5. **Reversible autonomy.** Adopt decisions are gated, probe-guarded, logged with projected
    savings, and revertible per module.
 
+## Vendoring
+
+Installing from npm is the simplest route. If you vendor the package as a directory inside
+your app instead, keep the sync **one-way**: this repo is the source of truth, and the
+vendored copy is a verbatim copy of a pinned tag. Copy the `files` whitelist from
+`package.json` plus `package.json`, `README.md` and `LICENSE`. Have CI rebuild that copy from
+the pinned tag and fail on any diff. Never edit the copy in place; fix things here and re-sync.
+`require('agent-stable').VERSION` (or `require('./stable').VERSION`) reports which release a
+copy is.
+
 ## License
 
 MIT

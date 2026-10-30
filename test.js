@@ -3,6 +3,8 @@ const assert = require('assert');
 const { createMeter, createAdapters, createApa, DEFAULT_EVAL_PROMPTS, createBoard, createTiers, pricing, sinks } = require('./index');
 
 (async () => {
+  assert(require('./index').VERSION === require('./package.json').version, 'VERSION export matches package.json');
+
   // pricing
   assert(pricing.priceOf('claude-sonnet-5').out === 10, 'priceOf');
   assert(pricing.priceOf('claude-opus-5-20260401').in === 5, 'priceOf strips a snapshot suffix');
