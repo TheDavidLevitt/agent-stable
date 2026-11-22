@@ -5,6 +5,8 @@
 // advisories that are time- or token-sensitive (intro pricing ending, credit pool expiring,
 // context-window ceilings).
 //
+//   glue         — mechanical glue below the workhorse: a local model where one runs, else the
+//                  workhorse model itself (a subscription with few models)
 //   workhorse    — cheapest adequate model; mechanical extraction, classification, bulk work
 //   steeldust    — your daily driver: the orchestration layer, escalation from workhorse;
 //                  thesis-led summaries, judgment calls, routing
@@ -19,8 +21,9 @@
 //   });
 //   tiers.resolve('workhorse')   → { tier, model, price, fundingClass, advisories }
 //   tiers.escalate('workhorse')  → same shape, one tier up (steeldust)
+//   (stable/fleet.js works out which model each tier should run; incumbent() reads the result)
 
-const TIER_ORDER = ['workhorse', 'steeldust', 'thoroughbred', 'secretariat'];
+const TIER_ORDER = ['glue', 'workhorse', 'steeldust', 'thoroughbred', 'secretariat'];
 
 function createTiers({ incumbent, priceOf, costClass, advisories } = {}) {
   if (typeof incumbent !== 'function') throw new Error('createTiers needs { incumbent(tier) → model id }');
