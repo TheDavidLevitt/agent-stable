@@ -118,6 +118,14 @@ function createApa({ adapters, priceOf, judge, usageHistory, evalPrompts = DEFAU
       return 'test-recommend';
     }
     const module = ctx.module || 'summary';
+    // host policy (e.g. "this vendor only for one use", "subscription modules stay on the
+    // subscription") — checked before the eval, so a forbidden candidate costs nothing
+    const allow = ctx.allowed ? ctx.allowed(module, candId, f.lab) : null;
+    if (allow && allow.ok === false) {
+      notify.info(`  ↳ not tried for ${module}: ${allow.why}.`);
+      await log({ decision: `skip ${candId} for ${module}`, why: String(allow.why || 'host policy').slice(0, 200), taskRef: f.url });
+      return 'refused';
+    }
     const incId = store.incumbent(module);
     const ev = await evaluate({ id: candId, provider: ctx.providerFor(candId, f.lab) }, { id: incId, provider: ctx.providerFor(incId, '') }).catch(() => null);
     if (!ev) {

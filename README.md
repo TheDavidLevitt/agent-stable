@@ -35,6 +35,8 @@ agent-stable answers these continuously instead of the night you get the invoice
 Downstream agents don't ask for model names — they ask for a **tier**, and the stable answers
 with the current model, its real cost, and anything time- or token-sensitive:
 
+- **glue** — mechanical glue below the workhorse: a local model where one runs, else the
+  workhorse model itself.
 - **workhorse** — the cheapest adequate model: mechanical extraction, classification, bulk work.
 - **steeldust** — your daily driver; the orchestration layer, escalation from workhorse:
   thesis-led summaries, judgment calls, routing decisions.
@@ -53,6 +55,19 @@ tiers.escalate('workhorse')
 
 So a bot can run cheap by default, request escalation when it's out of its depth, and be told
 exactly what it will spend — and whose money that is — before it commits.
+
+Which model each tier runs is worked out, not set by hand. `fleet.deriveLadder()` takes the
+benchmark board and the set of models one budget can pay for (a *fleet*), sets each tier's
+bar as a share of the fleet's best score (secretariat 97%, thoroughbred 90%, steeldust 80%,
+workhorse 50%), and picks, bottom up, the cheapest frontier model above the bar and above the
+tier below. A stronger release lifts every bar; a rescaled index changes nothing; a small
+change in score or price leaves a tier alone. `fleet.assignModules()` moves a module up a tier
+when it keeps escalating and proposes a trial one tier down after a clean record.
+
+```js
+const L = fleet.deriveLadder(boardRows, { fundable: m => m.lab === 'Anthropic', mix, fleet: 'subscription' });
+L.tiers.thoroughbred // → { model: 'claude-opus-5-5', score: 59.1, why: 'cheapest subscription model scoring ≥ 58.1 …' }
+```
 
 ## How the modules run
 
@@ -175,6 +190,7 @@ Run the no-network demo — `node demo.js` replays the whole loop:
 | [`apa.js`](apa.js) | ✅ | `evaluate` · `projectSavings` · `adoptGate` · `considerFinding` — the full decision flow with Store/Notify injected: swap a Sheet+journal for a JSON-file+Slack and it behaves identically. Scan-prompt *assembly* stays host-side by design — it is context-gathering (credit pools, source scoreboard) from host systems. |
 | [`tiers.js`](tiers.js) | ✅ | tier-addressed resolution: `resolve('workhorse')` / `escalate()` → model + real cost + funding class + time-sensitive advisories, for downstream agents |
 | [`board.js`](board.js) | ✅ | tier assignment over sourced benchmark rows (user min ?? cutoff hypothesis) · `canonical()`/`sameModel()` slug families — effort variants (`-xhigh`, `-thinking`, …) and token order (`claude-4-5-haiku` ≡ `claude-haiku-4-5`) resolve to one model · family-aware `winnerOnBoard` · Pareto value walk `bestReplacement` · `recommend()` — the model a role *should* run, with a one-line why (persistence host-side) |
+| [`fleet.js`](fleet.js) | ✅ | `deriveLadder` — cutoffs and one distinct pick per tier per fleet, from the board; glue = workhorse or a local model; hysteresis · `assignModules` — module → tier from escalation records |
 | `server.js` | ⬜ | standalone HTTP surface + starter dashboard (second package) |
 
 ## Design rules
@@ -195,6 +211,11 @@ MIT
 
 ## Changelog
 
+- **0.9.0** — new `fleet.js`: the tier ladder (glue < workhorse < steeldust < thoroughbred <
+  secretariat) worked out per fleet from the board, cutoffs as shares of the best score,
+  hysteresis, local-model glue; `assignModules`. `apa.js`: `considerFinding` asks the host's
+  `allowed(module, candidate)` before any eval. `tiers.js`: `glue` joins the tier order.
+  `pricing.js`: Claude 5.5 family, Fable 5.2, Grok 4.7.
 - **0.8.0** — `board.js`: `canonical()` / `sameModel()` slug families (effort variants such as
   `-xhigh` / `-thinking` and token order such as `claude-4-5-haiku` ≡ `claude-haiku-4-5`
   resolve to one model); tiering uses the effective threshold (user min ?? cutoff hypothesis);

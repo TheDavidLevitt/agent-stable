@@ -5,7 +5,11 @@
 // API-list prices per 1M tokens. Update when prices change; runtime-scraped prices
 // (APA board / findings) are layered on top by the host app, not written here.
 const MODEL_PRICES = {
-  // Anthropic first-party list prices (verified 2026-09-04).
+  // Anthropic first-party list prices (verified 2026-09-04; 5.x rows 2026-11-22 from the AA board).
+  'claude-fable-5-2':   { in: 8,  out: 40,  tier: 'fable' },
+  'claude-opus-5-5':    { in: 4,  out: 20,  tier: 'opus' },
+  'claude-sonnet-5-5':  { in: 2,  out: 10,  tier: 'sonnet' },
+  'claude-haiku-5-5':   { in: 0.10, out: 0.50, tier: 'haiku' },
   'claude-fable-5-1':   { in: 10, out: 50,  tier: 'fable' },
   'claude-fable-5':     { in: 10, out: 50,  tier: 'fable' },
   'claude-opus-5':      { in: 5,  out: 25,  tier: 'opus' },
@@ -19,6 +23,8 @@ const MODEL_PRICES = {
   'gemini-2.5-pro':     { in: 1.25, out: 10, tier: 'gemini' },
   // grok is out-of-pocket (xAI paid API). One row PER model: a bare family row prices every
   // variant at the cheapest one's rate and lets a cost gate "prove" false savings.
+  'grok-4.7':           { in: 2,    out: 6,    tier: 'grok', note: 'AA-scraped, refine from invoice' },
+  'grok-4-7':           { in: 2,    out: 6,    tier: 'grok', note: 'AA-scraped, refine from invoice' },
   'grok-4.6':           { in: 2,    out: 6,    tier: 'grok', note: 'AA-scraped, refine from invoice' },
   'grok-4.3':           { in: 1.25, out: 2.50, tier: 'grok', note: 'AA-scraped, refine from invoice' },
 };

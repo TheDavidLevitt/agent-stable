@@ -155,6 +155,27 @@ const { createMeter, createAdapters, createApa, createBoard, createTiers, pricin
   assert(await apa3.considerFinding({ kind: 'release', lab: 'LabX', model: 'cand3', headline: 'h', url: 'u' }, ctx3) === 'proposed', 'delisted incumbent → proposed');
   assert(ev3.adopt.length === 0 && ev3.propose.some(l => l.includes('incumbent delisted')), 'proposal via notify.propose, no store.adopt');
 
+  // fleet: ladder worked out from the board — distinct picks best to cheapest, shares of the top score
+  {
+    const { fleet } = require('./index');
+    const rows = [
+      { model: 'm-top', lab: 'L', priceIn: 8, priceOut: 40, benchmarks: { 'AA Intelligence': 64 } },
+      { model: 'm-big', lab: 'L', priceIn: 4, priceOut: 20, benchmarks: { 'AA Intelligence': 59 } },
+      { model: 'm-mid', lab: 'L', priceIn: 2, priceOut: 10, benchmarks: { 'AA Intelligence': 54 } },
+      { model: 'm-small', lab: 'L', priceIn: 0.1, priceOut: 0.5, benchmarks: { 'AA Intelligence': 36 } },
+      { model: 'm-old', lab: 'L', priceIn: 1, priceOut: 5, benchmarks: { 'AA Intelligence': 7 } },
+    ];
+    const L = fleet.deriveLadder(rows, { fleet: 'test' });
+    assert.deepStrictEqual(fleet.LADDER.map(k => L.tiers[k].model), ['m-small', 'm-small', 'm-mid', 'm-big', 'm-top'], 'ladder picks');
+    assert(L.cutoffs.thoroughbred.min === 57.6, 'cutoff = share of the top score');
+    const G = fleet.deriveLadder(rows, { glue: 'local', localModels: [{ id: 'local-27b', score: 20 }] });
+    assert(G.tiers.glue.local && G.tiers.glue.model === 'local-27b', 'local glue');
+    const kept = fleet.deriveLadder([...rows, { model: 'm-mid2', lab: 'L', priceIn: 1.9, priceOut: 9.5, benchmarks: { 'AA Intelligence': 54.5 } }], { incumbents: { steeldust: 'm-mid' } });
+    assert(kept.tiers.steeldust.model === 'm-mid' && kept.tiers.steeldust.kept, 'hysteresis keeps the incumbent on jitter');
+    const a = fleet.assignModules({ x: 'workhorse' }, { x: { runs: 10, escalations: 3 } });
+    assert(a.x.change === 'up' && a.x.tier === 'steeldust', 'failing module moves up');
+  }
+
   // tiers: resolve/escalate with price, funding class, and time-sensitive advisories
   const tiers = createTiers({
     incumbent: t => ({ workhorse: 'claude-haiku-4-5', steeldust: 'claude-sonnet-5', thoroughbred: 'claude-opus-4-8', secretariat: 'claude-fable-5' })[t],
